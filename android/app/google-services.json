@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "266689150707",
+    "project_id": "awesome-noti",
+    "storage_bucket": "awesome-noti.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:266689150707:android:5c8295243ee7ebd1e84186",
+        "android_client_info": {
+          "package_name": "com.example.inniti_constro"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAEtNTpqSTqaJJomvtgUvpMRJQSRFEzY1I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
