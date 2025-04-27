@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../views/home/components/animated_dots.dart';
+
 import '../constants/constants.dart';
 import 'network_image.dart';
 
@@ -71,13 +71,13 @@ class _ProductImagesSliderState extends State<ProductImagesSlider> {
                   itemCount: images.length,
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(AppDefaults.padding),
-                child: AnimatedDots(
-                  totalItems: images.length,
-                  currentIndex: currentIndex,
-                ),
-              )
+              // Padding(
+              //   padding: const EdgeInsets.all(AppDefaults.padding),
+              //   child: AnimatedDots(
+              //     totalItems: images.length,
+              //     currentIndex: currentIndex,
+              //   ),
+              // )
             ],
           ),
           Positioned(

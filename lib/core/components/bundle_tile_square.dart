@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../constants/constants.dart';
 import '../models/dummy_bundle_model.dart';
-import '../routes/app_routes.dart';
+
 import 'network_image.dart';
 
 class BundleTileSquare extends StatelessWidget {
@@ -20,7 +20,7 @@ class BundleTileSquare extends StatelessWidget {
       borderRadius: AppDefaults.borderRadius,
       child: InkWell(
         onTap: () {
-          Navigator.pushNamed(context, AppRoutes.bundleProduct);
+          //Navigator.pushNamed(context, AppRoutes.bundleProduct);
         },
         borderRadius: AppDefaults.borderRadius,
         child: Container(

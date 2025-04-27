@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.7.2
+  sdk: 3.6.1
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -34,29 +34,48 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
-  flutter_svg: ^2.0.10
-  cached_network_image: ^3.4.0
-  form_field_validator: ^1.1.0
-  animations: ^2.0.11
-  provider: ^6.1.2
-  shared_preferences: ^2.3.5
-  http: ^1.2.2
-  image_picker: ^1.1.2
-  animated_custom_dropdown: ^3.1.1
-  intl: ^0.20.2
-  fl_chart: ^0.70.2
-  percent_indicator: ^4.2.4
-  google_maps_flutter: ^2.5.0
-  geolocator: ^13.0.2
-  geocoding: ^3.0.0
-  permission_handler: ^11.0.1
+
+  flutter_svg: 2.0.10
+  cached_network_image: 3.4.0
+  form_field_validator: 1.1.0
+  #  animations: ^2.0.11
+  #  provider: ^6.1.2
+  shared_preferences: 2.3.5
+  http: 1.2.2
+  image_picker: 1.1.2
+  animated_custom_dropdown: 3.1.1
+  intl:
+#  fl_chart: 0.70.2
+  percent_indicator: 4.2.4
+  google_maps_flutter: 2.5.0
+  geolocator: 10.1.0
+  geocoding: 3.0.0
+  permission_handler: 12.0.0+1
   photo_view: ^0.15.0
   path_provider: ^2.0.11
   open_file: ^3.2.1
   font_awesome_flutter: ^10.8.0
-  firebase_core: ^3.12.0
-  firebase_messaging: ^15.2.3
-  flutter_plugin_android_lifecycle:
+  #  firebase_core: ^3.12.0
+  #  firebase_messaging: ^15.2.3
+  #  flutter_plugin_android_lifecycle:
+  riverpod: ^2.6.1
+  flutter_riverpod: ^2.6.1
+  curved_navigation_bar: ^1.0.0
+  flutter_staggered_animations:
+  google_fonts:
+  drop_down_list: ^2.0.0
+
+  connectivity_plus: ^6.0.1
+  #  get: ^4.7.2
+  camera:
+  lottie: ^3.3.1
+  intl_phone_field: ^3.2.0
+  flutter_secure_storage: 9.2.4
+  pull_to_refresh: ^2.0.0
+  #  flutter_swipe_button: 2.1.3
+  flutter_screenutil:
+  slide_to_act: ^2.0.2
+  device_preview:
 
 
 dev_dependencies:
@@ -71,10 +90,11 @@ dev_dependencies:
   flutter_lints: ^5.0.0
   flutter_native_splash: ^2.2.3+1
   flutter_launcher_icons: ^0.14.3
+  logger:
 
 flutter_native_splash:
   color: "#ffffff"
-  image: "assets/images/app_logo_splash.png"
+  image: "assets/images/inniti_logo.png"
   android: true
   ios: true
   web: false
@@ -102,8 +122,16 @@ flutter:
   #   - images/a_dot_ham.jpeg
 
   assets:
+    - assets/fonts/
     - assets/images/
     - assets/icons/
+    - assets/images/animated_splash_images/
+    - assets/icons/menu-icon/
+    - assets/icons/bottam-navi/
+    - assets/icons/home-iocn/
+    - assets/loti/no-internet/no-internet-cloude.json
+    - assets/loti/loder/
+    - assets/icons/attendance/
 
 
   # An image asset can refer to one or more resolution-specific "variants", see
@@ -117,12 +145,26 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic
+  fonts:
+    - family: NunitoSans
+      fonts:
+        - asset: assets/fonts/NunitoSans/NunitoSans-ExtraBold/NunitoSans-ExtraBold.ttf
+          weight: 800
+        - asset: assets/fonts/NunitoSans/NunitoSans-Bold/NunitoSans-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/NunitoSans/NunitoSans-Medium/NunitoSans-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/NunitoSans/NunitoSans-SemiBold/NunitoSans-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/NunitoSans/NunitoSans-Regular/NunitoSans-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/NunitoSans/NunitoSans-ExtraLight/NunitoSans-ExtraLight.ttf
+          weight: 200
+        - asset: assets/fonts/NunitoSans/NunitoSans-Light/NunitoSans-Light.ttf
+          weight: 300
+
+
+
   #   - family: Trajan Pro
   #     fonts:
   #       - asset: fonts/TrajanPro.ttf

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../routes/app_routes.dart';
 import '../constants/constants.dart';
 import '../models/dummy_product_model.dart';
-import '../routes/app_routes.dart';
+
 import 'network_image.dart';
 
 class ProductTileSquare extends StatelessWidget {
@@ -22,7 +23,8 @@ class ProductTileSquare extends StatelessWidget {
         color: AppColors.scaffoldBackground,
         child: InkWell(
           borderRadius: AppDefaults.borderRadius,
-          onTap: () => Navigator.pushNamed(context, AppRoutes.productDetails),
+          onTap: (){},
+          //onTap: () => Navigator.pushNamed(context, AppRoutes.productDetails),
           child: Container(
             width: 176,
             height: 296,

@@ -1,3 +1,11 @@
+class Contractor {
+  final String id;
+  final String name;
+
+  Contractor({required this.id, required this.name});
+}
+
+
 class SuppliersDDL {
   final int id;
   final String name;
@@ -10,21 +18,33 @@ class SuppliersDDL {
       name: json['ContractorName'],
     );
   }
+
+  // Custom toString method to log the object in a readable format
+  @override
+  String toString() {
+    return 'ContractorID: $id, ContractorName: $name';
+  }
+
 }
 
 class LabourCategoryDLL {
   final String id;
   final String name;
 
-  LabourCategoryDLL({required this.id, required this.name});
+  LabourCategoryDLL({
+    required this.id,
+    required this.name,
+  });
 
+  // Fixing potential null values using null-aware operator (?? '')
   factory LabourCategoryDLL.fromJson(Map<String, dynamic> json) {
     return LabourCategoryDLL(
-      id: json['GeneralDropDownText'],
-      name: json['GeneralDropDownValue'],
+      id: json['LabourCategoryValue'] ?? '',  // Ensure 'id' is not null
+      name: json['LabourCategoryText'] ?? '', // Ensure 'name' is not null
     );
   }
 }
+
 
 class CurrencyDDL {
   final int id;

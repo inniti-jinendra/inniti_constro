@@ -14,4 +14,29 @@ class AppColors {
   static const Color textInputBackground = Color(0xFFF3EAF9);
   static const Color separator = Color(0xFFDAD2E8);
   static const Color gray = Color(0xFFE1E1E1);
+
+
+  static const Color primaryBlueFont = Color(0xFF5B21B1);
+
+  static const Color primaryBlue = Color(0xFF5B21B1);
+
+  static const Color primaryWhitebg = Color(0xFFF3EFF9);
+
+  static const Color primaryBlackFont = Color(0xFF000000);
+  static const Color primaryLightGrayFont = Color(0x66000000);
+
+
+  static const Color cardgreenlight = Color(0xffc8fae8);
+  static const Color cardredlight = Color(0xffFFE9E9);
+
+
+  static const Color white = Color(0xffFFFFFF);
+
+
+  static const Color ColorLightGreenBG = Color(0xffc8fae8);
+  static const Color ColorGreenFont = Color(0xff07614A);
+
+
+
+
 }

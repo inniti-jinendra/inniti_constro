@@ -5,8 +5,8 @@ class ZoomableImagePopup extends StatelessWidget {
   final String imageUrl; // Image URL to display
   final bool
       isNetworkImage; // Flag to indicate if the image is from the network
-  final double containerHeight; // Height of the container
-  final double containerWidth; // Width of the container
+  final double containerHeight; // Height of the blank_container
+  final double containerWidth; // Width of the blank_container
 
   const ZoomableImagePopup({
     super.key,
@@ -24,7 +24,7 @@ class ZoomableImagePopup extends StatelessWidget {
       child: Container(
         height: containerHeight,
         width: containerWidth,
-        color: Colors.black, // Background color for the image container
+        color: Colors.black, // Background color for the image blank_container
         child: PhotoView(
           imageProvider: isNetworkImage
               ? NetworkImage(imageUrl)

@@ -1,5 +1,6 @@
 
-import 'package:inniti_constro/core/models/purchase_requisition/pr_items_model.dart';
+
+import 'pr_items_model.dart';
 
 class PrMasterModel {
   int userID;

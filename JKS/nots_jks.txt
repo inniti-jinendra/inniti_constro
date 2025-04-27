@@ -1,0 +1,17 @@
+C:\Users\Dell\Desktop\Jinendra\flutter_projects\inniti_constro_app\inniti_constro\JKS\constro_inniti -deststoretype pkcs12"
+
+
+Code : 
+
+C:\Users\Dell\Desktop\Jinendra\flutter_projects\inniti_constro_app\inniti_constro\JKS>keytool -genkey -v -keystore C:\Users\Dell\Desktop\Jinendra\flutter_projects\inniti_constro_app\inniti_constro\JKS\constro_inniti -keyalg RSA -keysize 2048 -validity 365000 -alias constro_nniti 
+
+
+
+File Path : C:\Users\Dell\Desktop\Jinendra\flutter_projects\inniti_constro_app\inniti_constro\JKS\constro_inniti
+
+
+ Password: CONSTRO_inniti@#123
+
+ Alias:constro_nniti 
+
+validity 365000

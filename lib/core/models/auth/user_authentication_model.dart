@@ -1,31 +1,48 @@
-class UserAuthenticationViewModel {
+class UserAuthenticationModel {
   final String userId;
-  final String emailId;
-  final String mobileNo;
+  final String email;
+  final String mobile;
+  final String fullName;
   final String activeProjectId;
-  final String companyCode;
-  final String otp;
-  final bool authorizedUser;
+  final String token;
+  final String generatedOtp;
 
-  UserAuthenticationViewModel({
+  // ✅ Computed Property to check if the user is authorized
+  bool get authorizedUser => userId.isNotEmpty;
+
+  UserAuthenticationModel({
     required this.userId,
-    required this.emailId,
-    required this.mobileNo,
+    required this.email,
+    required this.mobile,
+    required this.fullName,
     required this.activeProjectId,
-    required this.companyCode,
-    required this.otp,
-    required this.authorizedUser,
+    required this.token,
+    required this.generatedOtp,
   });
 
-  factory UserAuthenticationViewModel.fromJson(Map<String, dynamic> json) {
-    return UserAuthenticationViewModel(
-      authorizedUser: json['AuthorizedUser'],
-      userId: json['UserID'],
-      emailId: json['EmailID'],
-      mobileNo: json['MobileNo'],
-      activeProjectId: json['ActiveProjectID'],
-      companyCode: json['CompanyCode'],
-      otp: json['OTP'],
+  // ✅ Convert JSON response to Model
+  factory UserAuthenticationModel.fromJson(Map<String, dynamic> json) {
+    return UserAuthenticationModel(
+      userId: json['UserID'] ?? '',
+      email: json['EmailID'] ?? '',
+      mobile: json['MobileNo'] ?? '',
+      fullName: json['UserFullName'] ?? '',
+      activeProjectId: json['ActiveProjectID'] ?? '',
+      token: json['GeneratedToken'] ?? '',
+      generatedOtp: json['GeneratedOtp'] ?? '',
     );
+  }
+
+  // ✅ Convert Model to JSON
+  Map<String, dynamic> toJson() {
+    return {
+      "UserID": userId,
+      "EmailID": email,
+      "MobileNo": mobile,
+      "UserFullName": fullName,
+      "ActiveProjectID": activeProjectId,
+      "GeneratedToken": token,
+      "GeneratedOtp": generatedOtp,
+    };
   }
 }
