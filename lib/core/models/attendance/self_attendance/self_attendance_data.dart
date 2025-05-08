@@ -34,25 +34,23 @@
 
 
 class SelfAttendanceData {
-  final DateTime? inTime;
-  final DateTime? outTime;
-  final bool? isLeave;
-  final String empAttendanceId;
-  final String employeeCode;
+  final int empAttendanceId;
+  final int employeeCode;
   final String employeeName;
   final String designationName;
-  final Duration presentHours;
+  final String? inTime;
+  final String? outTime;
+  final int presentHours;
   final String? inDocumentPath;
   final String? outDocumentPath;
 
   SelfAttendanceData({
-    this.inTime,
-    this.outTime,
-    this.isLeave,
     required this.empAttendanceId,
     required this.employeeCode,
     required this.employeeName,
     required this.designationName,
+    this.inTime,
+    this.outTime,
     required this.presentHours,
     this.inDocumentPath,
     this.outDocumentPath,
@@ -60,23 +58,18 @@ class SelfAttendanceData {
 
   factory SelfAttendanceData.fromJson(Map<String, dynamic> json) {
     return SelfAttendanceData(
-      inTime: json['InTime'] != null ? DateTime.parse(json['InTime']) : null,
-      outTime: json['OutTime'] != null ? DateTime.parse(json['OutTime']) : null,
-      isLeave: json['IsLeave'] ?? false,
-      empAttendanceId: json['EmpAttendanceId']?.toString() ?? '',
-      employeeCode: json['EmployeeCode']?.toString() ?? '',
+      empAttendanceId: json['EmpAttendanceId'] ?? 0,
+      employeeCode: json['EmployeeCode'] ?? 0,
       employeeName: json['EmployeeName'] ?? '',
       designationName: json['DesignationName'] ?? '',
-      presentHours: Duration(seconds: json['PresentHours'] ?? 0),
+      inTime: json['InTime'],
+      outTime: json['OutTime'],
+      presentHours: json['PresentHours'] ?? 0,
       inDocumentPath: json['inDocumentPath'],
       outDocumentPath: json['OutDocumentPath'],
     );
   }
-
-  @override
-  String toString() {
-    return 'SelfAttendanceData(inTime: $inTime, outTime: $outTime, isLeave: $isLeave, empAttendanceId: $empAttendanceId, employeeCode: $employeeCode, employeeName: $employeeName, designationName: $designationName, presentHours: ${presentHours.inHours} hours ${presentHours.inMinutes % 60} minutes, inDocumentPath: $inDocumentPath, outDocumentPath: $outDocumentPath)';
-  }
 }
+
 
 

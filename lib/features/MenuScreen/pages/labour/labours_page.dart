@@ -94,14 +94,33 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
   //
   // }
 
+  String? _projectName;
   @override
   void initState() {
     super.initState();
-
+    _fetchStoredProject();
     _scrollController = ScrollController();
     _initializeScrollListener();
     _loadInitialData();
     _fetchCategories();
+  }
+
+  // Fetch the stored project name and ID
+  Future<void> _fetchStoredProject() async {
+    try {
+      final projectName =
+          await SecureStorageUtil.readSecureData("ActiveProjectName");
+      setState(() {
+        _projectName = projectName;
+      });
+
+      // Log the fetched project name (for debugging)
+      if (_projectName != null) {
+        AppLogger.info("Fetched Active Project: $_projectName");
+      }
+    } catch (e) {
+      AppLogger.error("Error fetching project from secure storage: $e");
+    }
   }
 
   void _initializeScrollListener() {
@@ -132,14 +151,13 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
     await ref.read(labourListProvider.notifier).loadLabours(context: context);
   }
 
-
-
   Future<void> _fetchCategories() async {
     AppLogger.debug("🚀 Starting _fetchCategories...");
 
     try {
-      final url = Uri.parse(
-          "http://192.168.1.28:1010/api/DropDownHendler/Fetch-LabourCategory-DDL");
+      //   ApiEndpoints.fetchLabourCategoriesDDL
+      final url = Uri.parse(ApiEndpoints.fetchLabourCategoriesDDL);
+      // final url = Uri.parse("http://192.168.1.28:1010/api/DropDownHendler/Fetch-LabourCategory-DDL");
       AppLogger.debug("🌐 API URL: $url");
 
       final String? authToken =
@@ -357,7 +375,6 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
                           },
                         ),
 
-
                         const SizedBox(height: 16),
 
                         // Clear Filters Button
@@ -369,6 +386,8 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
                               selectedCategory = ''; // Clear selected category
                             });
                             labourNotifier.clearFilters();
+
+                            Navigator.pop(context);
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.grey[300],
@@ -450,9 +469,9 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
 
       // Log contractor details with both name and ID
       contractors.forEach((contractor) {
-        AppLogger.info('Contractor Name: ${contractor.name}, Contractor ID: ${contractor.id}');
+        AppLogger.info(
+            'Contractor Name: ${contractor.name}, Contractor ID: ${contractor.id}');
       });
-
 
       contractorNames = contractors.map((c) => c.name).toSet().toList();
       ContractorID = contractors.map((c) => c.id).toSet().toList();
@@ -651,41 +670,45 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
       //   }
       // },
 
-
       onSave: () async {
         AppLogger.info("Form validation started.");
 
         // Manual validation for required fields
         if (selectedContractor == null || selectedContractor!.isEmpty) {
-          CustomSnackbar.show(context, message: "Please select a contractor.", isError: true);
+          CustomSnackbar.show(context,
+              message: "Please select a contractor.", isError: true);
           return;
         }
 
         if (firstNameController.text.trim().isEmpty) {
-          CustomSnackbar.show(context, message: "First Name is required.", isError: true);
+          CustomSnackbar.show(context,
+              message: "First Name is required.", isError: true);
           return;
         }
 
         if (selectedGender == null || selectedGender!.isEmpty) {
-          CustomSnackbar.show(context, message: "Please select a gender.", isError: true);
+          CustomSnackbar.show(context,
+              message: "Please select a gender.", isError: true);
           return;
         }
 
         if (workingHoursController.text.trim().isEmpty) {
-          CustomSnackbar.show(context, message: "Working Hours are required.", isError: true);
+          CustomSnackbar.show(context,
+              message: "Working Hours are required.", isError: true);
           return;
         }
 
         if (wagesController.text.trim().isEmpty) {
-          CustomSnackbar.show(context, message: "Wages are required.", isError: true);
+          CustomSnackbar.show(context,
+              message: "Wages are required.", isError: true);
           return;
         }
 
         if (commissionController.text.trim().isEmpty) {
-          CustomSnackbar.show(context, message: "Commission is required.", isError: true);
+          CustomSnackbar.show(context,
+              message: "Commission is required.", isError: true);
           return;
         }
-
 
         // ✅ All validations passed — log everything (even optional)
         AppLogger.info("Form validation passed. Logging values:");
@@ -703,7 +726,6 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
         AppLogger.info("OT Rate: ${otRateController.text}");
         AppLogger.info("Selected Category: $selectedCategory");
         //AppLogger.info("Labour ID: $labourId");
-
 
         // // Get the index of the selected contractor
         // int? selectedContractorIndex = contractorNames.indexOf(selectedContractor!);
@@ -737,8 +759,6 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
         //   AppLogger.info("No image uploaded. Proceeding without image.");
         //   base64Image = null;
         // }
-
-
 
         // CustomSnackbar.show(
         //   context,
@@ -814,18 +834,22 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
             int contractorId = 0;
             if (selectedContractor != null && selectedContractor!.isNotEmpty) {
               // Get the index of the selected contractor and fetch the corresponding contractor ID
-              int? selectedContractorIndex = contractorNames.indexOf(selectedContractor!);
+              int? selectedContractorIndex =
+                  contractorNames.indexOf(selectedContractor!);
               if (selectedContractorIndex != -1) {
                 contractorId = ContractorID[selectedContractorIndex];
-                AppLogger.info("Selected Contractor ID api caling : $contractorId");
+                AppLogger.info(
+                    "Selected Contractor ID api caling : $contractorId");
               } else {
                 AppLogger.warn("Selected contractor not found in the list.");
-                CustomSnackbar.show(context, message: "Invalid contractor selected.", isError: true);
+                CustomSnackbar.show(context,
+                    message: "Invalid contractor selected.", isError: true);
                 return;
               }
             } else {
               AppLogger.warn("No contractor selected.");
-              CustomSnackbar.show(context, message: "Please select a contractor.", isError: true);
+              CustomSnackbar.show(context,
+                  message: "Please select a contractor.", isError: true);
               return;
             }
             // Add the labour data via API
@@ -836,7 +860,8 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
               // Try parsing the text input to double, fallback to 0.0 if invalid
               double wages = double.tryParse(wagesController.text) ?? 0.0;
               double otRate = double.tryParse(otRateController.text) ?? 0.0;
-              double commission = double.tryParse(commissionController.text) ?? 0.0;
+              double commission =
+                  double.tryParse(commissionController.text) ?? 0.0;
 
               // Log parsed values
               AppLogger.info("Labour Wages: $wages");
@@ -851,22 +876,24 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
               AppLogger.info("Saving new labour person. Logging data:");
 
               AppLogger.info("Labour First Name: ${firstNameController.text}");
-              AppLogger.info("Labour Middle Name: ${middleNameController.text}");
+              AppLogger.info(
+                  "Labour Middle Name: ${middleNameController.text}");
               AppLogger.info("Labour Last Name: ${lastNameController.text}");
               AppLogger.info("Labour Gender: $selectedGender");
               AppLogger.info("Labour Age: ${ageController.text}");
               AppLogger.info("Labour Mobile No: ${mobileController.text}");
               AppLogger.info("Labour Aadhar No: ${idController.text}");
-              AppLogger.info("Labour Working Hours: ${workingHoursController.text}");
+              AppLogger.info(
+                  "Labour Working Hours: ${workingHoursController.text}");
               AppLogger.info("Labour Wages: ${wagesController.text}");
               AppLogger.info("Labour OT Rate: ${0}");
               AppLogger.info("Labour Commission: ${commissionController.text}");
               AppLogger.info("Labour Category: $selectedCategory");
               AppLogger.info("Labour Supplier ID: $contractorId");
               AppLogger.info("Labour Created By: 13125");
-              AppLogger.info("Labour Created Date: ${DateTime.now().toIso8601String()}");
+              AppLogger.info(
+                  "Labour Created Date: ${DateTime.now().toIso8601String()}");
               AppLogger.info("Labour Company Code: CONSTRO");
-
 
               // final labourData = {
               //   "labourId": 0,
@@ -893,8 +920,6 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
               //
               // AppLogger.info("Labour data to be sent to API for add: $labourData");
 
-
-
               bool isLabourAdded = await LabourApiService().addLabour(
                 labourId: 0,
                 supplierId: contractorId,
@@ -905,18 +930,22 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
                 labourAge: int.tryParse(ageController.text.trim()) ?? 0,
                 labourContactNo: mobileController.text.trim(),
                 labourAadharNo: idController.text.trim(),
-                labourWorkingHrs: int.tryParse(workingHoursController.text.trim()) ?? 0,
+                labourWorkingHrs:
+                    int.tryParse(workingHoursController.text.trim()) ?? 0,
                 createdBy: 13125,
                 createdDate: DateTime.now().toIso8601String(),
-                advanceAmount: double.tryParse(wagesController.text.trim()) ?? 0.0,
+                advanceAmount:
+                    double.tryParse(wagesController.text.trim()) ?? 0.0,
                 totalWages: double.tryParse(wagesController.text.trim()) ?? 0.0,
                 otRate: 0,
                 labourCode: " ",
                 labourCategory: selectedCategory ?? "",
-                commissionPerLabour: double.tryParse(commissionController.text.trim()) ?? 0.0,
-                currencyId: 1001,
+                commissionPerLabour:
+                    double.tryParse(commissionController.text.trim()) ?? 0.0,
+                currencyId: 1000,
+                //currencyId: 1001,
                 companyCode: "CONSTRO",
-            );
+              );
 
               // // Now call the API method to save the labour person
               // bool isLabourAdded = await LabourApiService().addLabour(
@@ -941,7 +970,6 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
               //   currencyId: 1001,  // Example, replace if needed
               //   companyCode: "CONSTRO",  // Example, replace if needed
               // );
-
 
               GlobalLoader.hide();
 
@@ -971,7 +999,7 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
                   selectedContractor = null;
                   selectedCategory = null;
                   //imagePath = null;
-                 // base64Image = '';
+                  // base64Image = '';
                 });
 
                 // ✅ Refresh first
@@ -979,13 +1007,14 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
                 //AppLogger.info("Labours list refreshed.");
                 //Navigator.pop(context);
 
-                await ref.read(labourListProvider.notifier).loadLabours(refresh: true, context: context);
+                await ref
+                    .read(labourListProvider.notifier)
+                    .loadLabours(refresh: true, context: context);
                 AppLogger.info("Labours list refreshed.");
 
                 // ✅ THEN pop back to the previous screen
                 Navigator.pop(context);
                 AppLogger.info("POP OUT FOR BACK ");
-
               } else {
                 CustomSnackbar.show(
                   context,
@@ -994,11 +1023,12 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
                 );
                 AppLogger.warn("API returned failure when adding labour.");
               }
-
             } catch (e, stacktrace) {
               GlobalLoader.hide();
-              AppLogger.error("Error occurred while saving the labour person: $e");
-              AppLogger.error("Stack trace: $stacktrace");  // Log the stack trace to get more details.
+              AppLogger.error(
+                  "Error occurred while saving the labour person: $e");
+              AppLogger.error(
+                  "Stack trace: $stacktrace"); // Log the stack trace to get more details.
 
               CustomSnackbar.show(
                 context,
@@ -1006,7 +1036,6 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
                 isError: true,
               );
             }
-
           },
         );
 
@@ -1016,13 +1045,7 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
         }
       },
 
-
-
-
-
-
-
-        //     // working
+      //     // working
       // onSave: () async {
       //   AppLogger.info("Form validation started.");
       //
@@ -1225,7 +1248,7 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
 
     String? _capturedFilePath;
 
-     List<String> categoryNames = [];
+    List<String> categoryNames = [];
     List<SuppliersDDL> contractorList = [];
     List<String> contractorNames = [];
     Map<String, int> contractorMap = {};
@@ -1237,11 +1260,12 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
       AppLogger.info('Contractors fetched: ${contractors.length}');
       AppLogger.info('Categories fetched: ${categories.length}');
 
-
       contractors.forEach((contractor) {
-        AppLogger.info('Contractor: Name = ${contractor.name}, ID = ${contractor.id}');
-        contractorNames.add(contractor.name);  // Add name to list
-        contractorMap[contractor.name] = contractor.id;  // Store name and id in map
+        AppLogger.info(
+            'Contractor: Name = ${contractor.name}, ID = ${contractor.id}');
+        contractorNames.add(contractor.name); // Add name to list
+        contractorMap[contractor.name] =
+            contractor.id; // Store name and id in map
       });
 
       contractorNames = contractors.map((c) => c.name).toSet().toList();
@@ -1249,8 +1273,6 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
 
       AppLogger.info('Contractor names: $contractorNames');
       AppLogger.info('Category names: $categoryNames');
-
-
     } catch (error) {
       CustomSnackbar.show(context, message: 'Failed to load data');
       GlobalLoader.hide();
@@ -1282,8 +1304,10 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
       debugPrint('🔍 Labour ID: ${existingLabour.labourID}');
       debugPrint('🔍 Labour Code: ${existingLabour.labourCode}');
 
-      AppLogger.info("✅ Contractor from model: ${existingLabour?.contractorName}");
-      AppLogger.info("✅ Labour category from model: ${existingLabour?.labourCategory}");
+      AppLogger.info(
+          "✅ Contractor from model: ${existingLabour?.contractorName}");
+      AppLogger.info(
+          "✅ Labour category from model: ${existingLabour?.labourCategory}");
 
       // Pre-fill form controllers
       firstNameController.text = existingLabour.labourFirstName ?? '';
@@ -1292,21 +1316,61 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
       ageController.text = existingLabour.labourAge?.toString() ?? '';
       mobileController.text = existingLabour.labourContactNo ?? '';
       idController.text = existingLabour.labourAadharNo ?? '';
-      workingHoursController.text = existingLabour.labourWorkingHrs?.toString() ?? '';
+      workingHoursController.text =
+          existingLabour.labourWorkingHrs?.toString() ?? '';
       otRateController.text = existingLabour.otRate?.toString() ?? '';
       wagesController.text = existingLabour.totalWages?.toString() ?? '';
-      commissionController.text = existingLabour.commissionPerLabour?.toString() ?? '';
+      commissionController.text =
+          existingLabour.commissionPerLabour?.toString() ?? '';
     }
 
 // Pre-fill Gender
     String? selectedGender = existingLabour?.labourSex;
     debugPrint('🔍 Gender=> ${existingLabour?.labourSex}');
 
+// // Pre-fill Contractor Name
+//     String? selectedContractor = existingLabour?.contractorName;
+//     debugPrint(
+//         '🔍 selectedContractor existingLabour data :=> ${existingLabour?.contractorID}');
+
+//     // Attempt to find contractor name using contractor ID
+//     if (selectedContractor == null && existingLabour?.contractorID != null) {
+//       int targetId = existingLabour!.contractorID!;
+//       selectedContractor = contractorMap.entries
+//           .firstWhere(
+//             (entry) => entry.value == targetId,
+//             orElse: () => const MapEntry('', 0),
+//           )
+//           .key;
+
+//       if (selectedContractor != '') {
+//         AppLogger.info(
+//             '✅ Found Contractor Name $selectedContractor for ID ${existingLabour?.contractorID}');
+//       } else {
+//         AppLogger.warn(
+//             '⚠️ No contractor name found for ID ${existingLabour?.contractorID}');
+//         selectedContractor = null;
+//       }
+//     }
+
+//     // Log the selected contractor for debugging
+//     AppLogger.info('Contractor Name: $selectedContractor');
+
+//     // Pre-fill Labour Category
+//     String? selectedCategory =
+//         categoryNames.contains(existingLabour?.labourCategory)
+//             ? existingLabour?.labourCategory
+//             : (categoryNames.isNotEmpty ? categoryNames.first : null);
+
 // Pre-fill Contractor Name
     String? selectedContractor = existingLabour?.contractorName;
-    debugPrint('🔍 selectedContractor existingLabour data :=> ${existingLabour?.contractorID}');
 
-    // Attempt to find contractor name using contractor ID
+// If contractor name is not set, show first contractor in the list but don't select it until data is available
+    if (selectedContractor == null && contractorNames.isNotEmpty) {
+      selectedContractor = contractorNames.first; // Show first contractor as a default value in the UI
+    }
+
+// Attempt to find contractor name using contractor ID if contractor name is still null
     if (selectedContractor == null && existingLabour?.contractorID != null) {
       int targetId = existingLabour!.contractorID!;
       selectedContractor = contractorMap.entries
@@ -1317,21 +1381,33 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
           .key;
 
       if (selectedContractor != '') {
-        AppLogger.info('✅ Found Contractor Name $selectedContractor for ID ${existingLabour?.contractorID}');
+        AppLogger.info(
+            '✅ Found Contractor Name $selectedContractor for ID ${existingLabour?.contractorID}');
       } else {
-        AppLogger.warn('⚠️ No contractor name found for ID ${existingLabour?.contractorID}');
+        AppLogger.warn(
+            '⚠️ No contractor name found for ID ${existingLabour?.contractorID}');
         selectedContractor = null;
       }
     }
 
+// Log the selected contractor for debugging
+    AppLogger.info('Contractor Name prefill: $selectedContractor');
 
-    // Log the selected contractor for debugging
-    AppLogger.info('Contractor Name: $selectedContractor');
+// Pre-fill Labour Category
+    String? selectedCategory = existingLabour?.labourCategory;
 
-    // Pre-fill Labour Category
-    String? selectedCategory = categoryNames.contains(existingLabour?.labourCategory)
-        ? existingLabour?.labourCategory
-        : (categoryNames.isNotEmpty ? categoryNames.first : null);
+// If category is not set, show the first category in the list but don't select it
+    if (selectedCategory == null && categoryNames.isNotEmpty) {
+      selectedCategory = categoryNames.first; // Default to first category if not set
+    }
+
+// If the category is not valid, fallback to the first category in the list
+    if (selectedCategory == null || !categoryNames.contains(selectedCategory)) {
+      selectedCategory = categoryNames.isNotEmpty ? null: null;
+    }
+
+// Logging the selected category
+    AppLogger.info('Labour Category prefill: $selectedCategory');
 
 
     bool isImageUploaded = false;
@@ -1382,38 +1458,42 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
         ),
       ],
       saveButtonText: "Edit",
-
       onSave: () async {
         AppLogger.info("Form validation started.");
 
-
         if (selectedContractor == null || selectedContractor!.isEmpty) {
-          CustomSnackbar.show(context, message: "Please select a contractor.", isError: true);
+          CustomSnackbar.show(context,
+              message: "Please select a contractor.", isError: true);
           return;
         }
 
         if (firstNameController.text.trim().isEmpty) {
-          CustomSnackbar.show(context, message: "First Name is required.", isError: true);
+          CustomSnackbar.show(context,
+              message: "First Name is required.", isError: true);
           return;
         }
 
         if (selectedGender == null || selectedGender!.isEmpty) {
-          CustomSnackbar.show(context, message: "Please select a gender.", isError: true);
+          CustomSnackbar.show(context,
+              message: "Please select a gender.", isError: true);
           return;
         }
 
         if (workingHoursController.text.trim().isEmpty) {
-          CustomSnackbar.show(context, message: "Working Hours are required.", isError: true);
+          CustomSnackbar.show(context,
+              message: "Working Hours are required.", isError: true);
           return;
         }
 
         if (wagesController.text.trim().isEmpty) {
-          CustomSnackbar.show(context, message: "Wages are required.", isError: true);
+          CustomSnackbar.show(context,
+              message: "Wages are required.", isError: true);
           return;
         }
 
         if (commissionController.text.trim().isEmpty) {
-          CustomSnackbar.show(context, message: "Commission is required.", isError: true);
+          CustomSnackbar.show(context,
+              message: "Commission is required.", isError: true);
           return;
         }
 
@@ -1435,15 +1515,15 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
         //AppLogger.info("Labour ID: $labourId");
 
         int? contractorId;
-        if (selectedContractor != null && contractorMap.containsKey(selectedContractor)) {
+        if (selectedContractor != null &&
+            contractorMap.containsKey(selectedContractor)) {
           contractorId = contractorMap[selectedContractor]!;
-          AppLogger.info("🆔 Contractor ID for '$selectedContractor': $contractorId");
+          AppLogger.info(
+              "🆔 Contractor ID for '$selectedContractor': $contractorId");
         } else {
-          AppLogger.warn("⚠️ Contractor ID not found for name: $selectedContractor");
+          AppLogger.warn(
+              "⚠️ Contractor ID not found for name: $selectedContractor");
         }
-
-
-
 
         SharedPreferences prefs = await SharedPreferences.getInstance();
         String? imagePath = prefs.getString('imagePath');
@@ -1459,13 +1539,13 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
             AppLogger.info("Base64 Image conversion successful.");
             AppLogger.info("Base64 Image Length: ${base64Image.length}");
           } else {
-            AppLogger.warn("Base64 conversion returned empty. Possibly invalid image.");
+            AppLogger.warn(
+                "Base64 conversion returned empty. Possibly invalid image.");
           }
         } else {
           AppLogger.info("No image uploaded. Proceeding without image.");
           base64Image = null;
         }
-
 
         AppLogger.info("Form validation passed.");
         logFormValues(
@@ -1536,7 +1616,7 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
           context: context,
           title: "Confirm Save",
           message: "Are you sure you want to save this Labour Person?",
-          confirmText: "Save",
+          confirmText: "Update",
           cancelText: "Cancel",
           onConfirm: () async {
             AppLogger.info("Saving labour person started.");
@@ -1571,7 +1651,7 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
 
             bool isEditLabourAdded = await LabourApiService().editLabour(
               labourId: existingLabour?.labourID ?? 0,
-              supplierId: contractorId ?? 0 ,
+              supplierId: contractorId ?? 0,
               labourSex: selectedGender ?? " ",
               labourFirstName: firstNameController.text,
               labourMiddleName: middleNameController.text,
@@ -1588,7 +1668,7 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
               labourCode: existingLabour?.labourCode ?? " ",
               labourCategory: selectedCategory ?? "",
               commissionPerLabour: double.parse(commissionController.text),
-              currencyId: 1001,
+              currencyId: 1000,
               companyCode: "CONSTRO",
             );
 
@@ -1625,15 +1705,14 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
               //AppLogger.info("Labours list refreshed.");
               Navigator.pop(context);
 
-              await ref.read(labourListProvider.notifier).loadLabours(refresh: true, context: context);
+              await ref
+                  .read(labourListProvider.notifier)
+                  .loadLabours(refresh: true, context: context);
               AppLogger.info("Labours list refreshed.");
 
               // ✅ THEN pop back to the previous screen
               Navigator.pop(context);
               AppLogger.info("POP OUT FOR BACK ");
-
-
-
             } else {
               CustomSnackbar.show(
                 context,
@@ -1777,13 +1856,25 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
           icon: const Icon(Icons.chevron_left, size: 30),
           color: AppColors.primaryBlue,
         ),
-        title: Text(
-          'Labour Master',
-          style: GoogleFonts.nunitoSans(
-            fontWeight: FontWeight.w700,
-            fontSize: 18,
-            color: AppColors.primaryBlackFont,
-          ),
+        title: Column(
+          children: [
+            Text(
+              'Labour Master',
+              style: GoogleFonts.nunitoSans(
+                fontWeight: FontWeight.w700,
+                fontSize: 18,
+                color: AppColors.primaryBlackFont,
+              ),
+            ),
+            Text(
+              _projectName ?? 'No Project Selected',
+              style: GoogleFonts.nunitoSans(
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+                color: AppColors.primaryBlackFont,
+              ),
+            ),
+          ],
         ),
         actions: [
           Padding(
@@ -1997,9 +2088,11 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
                   }
 
                   final labour = labours[index];
-                  bool isLabourActive = labour.isActive == "Active"; // Check if the labour is active
+                  bool isLabourActive = labour.isActive ==
+                      "Active"; // Check if the labour is active
 
-                  AppLogger.info("Labour ${labour.labourName} is ${labour.isActive == 'Active' ? 'Active' : 'Inactive'}");
+                  AppLogger.info(
+                      "Labour ${labour.labourName} is ${labour.isActive == 'Active' ? 'Active' : 'Inactive'}");
 
                   return GestureDetector(
                     // onTap: () async {
@@ -2040,47 +2133,56 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
                     //   }
                     // },
 
+                    onTap: isLabourActive
+                        ? () async {
+                            Labour selectedLabour = labour;
+                            AppLogger.info("Tapped on labour at index $index");
+                            AppLogger.info(
+                                "Labour ID: ${selectedLabour.labourID}");
+                            AppLogger.info(
+                                "Labour labourCode: ${selectedLabour.labourCode}");
+                            AppLogger.info(
+                                "Labour contractorName: ${selectedLabour.contractorName}");
+                            AppLogger.info(
+                                "Labour labourCategory: ${selectedLabour.labourCategory}");
+                            AppLogger.info(
+                                "Labour labourName: ${selectedLabour.labourName}");
 
-                    onTap:  isLabourActive ? () async {
-                      Labour selectedLabour = labour;
-                      AppLogger.info("Tapped on labour at index $index");
-                      AppLogger.info("Labour ID: ${selectedLabour.labourID}");
-                      AppLogger.info("Labour labourCode: ${selectedLabour.labourCode}");
-                      AppLogger.info("Labour contractorName: ${selectedLabour.contractorName}");
-                      AppLogger.info("Labour labourCategory: ${selectedLabour.labourCategory}");
-                      AppLogger.info("Labour labourName: ${selectedLabour.labourName}");
+                            final apiService = LabourApiService();
+                            final result =
+                                await apiService.getLabourAttendanceData(
+                              labourAttendanceId: selectedLabour.labourID,
+                              date: DateFormat('yyyy-MM-dd')
+                                  .format(DateTime.now()),
+                            );
 
-                      final apiService = LabourApiService();
-                      final result = await apiService.getLabourAttendanceData(
-                        labourAttendanceId: selectedLabour.labourID,
-                        date: DateFormat('yyyy-MM-dd').format(DateTime.now()),
-                      );
+                            if (result['status'] == 'error') {
+                              AppLogger.error(
+                                  "❌ Failed to fetch data: ${result['message']}");
+                              CustomSnackbar.show(context,
+                                  message:
+                                      "Error fetching data: ${result['message']}");
+                            } else {
+                              final List<dynamic> dataList = result['Data'];
+                              if (dataList.isEmpty) {
+                                AppLogger.warn(
+                                    "⚠️ API returned empty data list.");
+                                CustomSnackbar.show(context,
+                                    message:
+                                        "No data found for selected labour.");
+                                return;
+                              }
 
-                      if (result['status'] == 'error') {
-                        AppLogger.error(
-                            "❌ Failed to fetch data: ${result['message']}");
-                        CustomSnackbar.show(context,
-                            message:
-                                "Error fetching data: ${result['message']}");
-                      } else {
-                        final List<dynamic> dataList = result['Data'];
-                        if (dataList.isEmpty) {
-                          AppLogger.warn("⚠️ API returned empty data list.");
-                          CustomSnackbar.show(context,
-                              message: "No data found for selected labour.");
-                          return;
-                        }
-
-                        final labourData = LabourModel.fromJson(
-                            dataList.first as Map<String, dynamic>);
-                        await showLabourEditDialog(
-                          context,
-                          saveButtonText: "Edit",
-                          existingLabour: labourData,
-                        );
-                      }
-                    } : null,
-
+                              final labourData = LabourModel.fromJson(
+                                  dataList.first as Map<String, dynamic>);
+                              await showLabourEditDialog(
+                                context,
+                                saveButtonText: "Edit",
+                                existingLabour: labourData,
+                              );
+                            }
+                          }
+                        : null,
 
                     // onLongPress: () {
                     //   CustomConfirmationDialog.show(
@@ -2123,81 +2225,92 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
                     //   );
                     // },
 
-                    child:   LabourCard(
-                        id: labour.labourCode.toString(),
-                        name: labour.labourName,
-                        company: labour.contractorName,
-                        status: labour.isActive == "Active",  // Active/Inactive based on isActive field
-                        onToggle: (bool value) async {
-                          if (value) {
-                            // Labour is now active, no deletion, but maybe updating status to active
-                            bool result = await LabourApiService().deleteLabour(
-                              labourId: labour.labourID,
-                              userId: 13125,
-                              companyCode: "CONSTRO",
-                             //newStatus: "Active", // Change status to Active
+                    child: LabourCard(
+                      id: labour.labourCode.toString(),
+                      name: labour.labourName,
+                      company: labour.contractorName,
+                      status: labour.isActive ==
+                          "Active", // Active/Inactive based on isActive field
+                      onToggle: (bool value) async {
+                        if (value) {
+                          // Labour is now active, no deletion, but maybe updating status to active
+                          bool result = await LabourApiService().deleteLabour(
+                            labourId: labour.labourID,
+                            userId: 13125,
+                            companyCode: "CONSTRO",
+                            //newStatus: "Active", // Change status to Active
+                          );
+
+                          if (result) {
+                            AppLogger.info(
+                                "✅ Labour ${labour.labourName} status updated to Active.");
+                            // setState(() {
+                            //   labour.isActive = "Active";  // Update the state to active
+                            // });
+
+                            CustomSnackbar.show(
+                              context,
+                              message:
+                                  "Labour ${labour.labourName} is now active.",
+                              isError: false,
                             );
 
-                            if (result) {
-                              AppLogger.info("✅ Labour ${labour.labourName} status updated to Active.");
-                              // setState(() {
-                              //   labour.isActive = "Active";  // Update the state to active
-                              // });
-
-                              CustomSnackbar.show(
-                                context,
-                                message: "Labour ${labour.labourName} is now active.",
-                                isError: false,
-                              );
-
-                              // 🔁 Refresh labour list
-                              await ref.read(labourListProvider.notifier).loadLabours(refresh: true, context: context);
-                              AppLogger.info("🔁 Labour list refreshed after activation.");
-
-                            } else {
-                              AppLogger.error("❌ Failed to update labour ${labour.labourName} status.");
-                              CustomSnackbar.show(
-                                context,
-                                message: "Failed to update labour status.",
-                                isError: true,
-                              );
-                            }
+                            // 🔁 Refresh labour list
+                            await ref
+                                .read(labourListProvider.notifier)
+                                .loadLabours(refresh: true, context: context);
+                            AppLogger.info(
+                                "🔁 Labour list refreshed after activation.");
                           } else {
-                            // Labour is being deactivated, so we proceed with deletion (inactive)
-                            bool result = await LabourApiService().deleteLabour(
-                              labourId: labour.labourID,
-                              userId: 13125,
-                              companyCode: "CONSTRO",
+                            AppLogger.error(
+                                "❌ Failed to update labour ${labour.labourName} status.");
+                            CustomSnackbar.show(
+                              context,
+                              message: "Failed to update labour status.",
+                              isError: true,
+                            );
+                          }
+                        } else {
+                          // Labour is being deactivated, so we proceed with deletion (inactive)
+                          bool result = await LabourApiService().deleteLabour(
+                            labourId: labour.labourID,
+                            userId: 13125,
+                            companyCode: "CONSTRO",
+                          );
+
+                          if (result) {
+                            AppLogger.info(
+                                "✅ Labour ${labour.labourName} In-Active successfully.");
+                            setState(() {
+                              filteredLabours.removeWhere(
+                                  (item) => item.labourID == labour.labourID);
+                            });
+
+                            CustomSnackbar.show(
+                              context,
+                              message:
+                                  "Labour ${labour.labourName} In-Active successfully.",
+                              isError: true,
                             );
 
-                            if (result) {
-                              AppLogger.info("✅ Labour ${labour.labourName} deleted successfully.");
-                              setState(() {
-                                filteredLabours.removeWhere((item) => item.labourID == labour.labourID);
-                              });
-
-                              CustomSnackbar.show(
-                                context,
-                                message: "Labour ${labour.labourName} deleted successfully.",
-                                isError: true,
-                              );
-
-                              // 🔁 Refresh labour list
-                              await ref.read(labourListProvider.notifier).loadLabours(refresh: true, context: context);
-                              AppLogger.info("🔁 Labour list refreshed after deletion.");
-
-                            } else {
-                              AppLogger.error("❌ Failed to delete labour ${labour.labourName}.");
-                              CustomSnackbar.show(
-                                context,
-                                message: "Failed to delete the labour.",
-                                isError: true,
-                              );
-                            }
+                            // 🔁 Refresh labour list
+                            await ref
+                                .read(labourListProvider.notifier)
+                                .loadLabours(refresh: true, context: context);
+                            AppLogger.info(
+                                "🔁 Labour list refreshed after deletion.");
+                          } else {
+                            AppLogger.error(
+                                "❌ Failed to delete labour ${labour.labourName}.");
+                            CustomSnackbar.show(
+                              context,
+                              message: "Failed to delete the labour.",
+                              isError: true,
+                            );
                           }
-                        },
-                      ),
-
+                        }
+                      },
+                    ),
 
                     // child: LabourCard(
                     //   id: labour.labourCode.toString(),

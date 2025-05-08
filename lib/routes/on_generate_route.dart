@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 
 import '../features/MenuScreen/pages/labour_attedance_new/labour_attendance_screen.dart';
+import '../features/attedance/attedance.dart';
+import '../features/attendance_only/attendance_screen.dart';
 import '../features/authentication/OtpVerification/otp_screen.dart';
 import '../features/authentication/company_code/company_code_screen.dart';
 import '../features/authentication/email_or_phone/login_email/email_login_screen.dart';
@@ -16,11 +18,7 @@ import '../features/home/bundle_details_page.dart';
 import '../features/home/bundle_product_details_page.dart';
 import '../features/home/components/ERP_dpr_entry.dart';
 import '../features/home/home_screen_entry_point/home_screen_entry_point.dart';
-import '../features/home/new_item_page.dart';
-import '../features/home/order_failed_page.dart';
-import '../features/home/product_details_page.dart';
-import '../features/home/search_page.dart';
-import '../features/home/search_result_page.dart';
+
 import '../features/labour/labour_grid_page.dart';
 
 import '../features/profile/profile/address/address_page.dart';
@@ -42,8 +40,6 @@ import '../features/profile/profile/settings/notifications_settings_page.dart';
 import '../features/profile/profile/settings/settings_page.dart';
 import '../features/purchase_requisition/pr_grid_page.dart';
 import '../features/purchase_requisition/pr_master_page.dart';
-
-import '../features/self_attendance/emp_self_attendance.dart';
 import '../features/splash/splash_screen.dart';
 import 'app_routes.dart';
 import 'unknown_page.dart';
@@ -66,11 +62,11 @@ class RouteGenerator {
       case AppRoutes.entryPoint:
         return CupertinoPageRoute(builder: (_) => const HomePage());
 
-      case AppRoutes.search:
-        return CupertinoPageRoute(builder: (_) => const SearchPage());
-
-      case AppRoutes.searchResult:
-        return CupertinoPageRoute(builder: (_) => const SearchResultPage());
+      // case AppRoutes.search:
+      //   return CupertinoPageRoute(builder: (_) => const SearchPage());
+      //
+      // case AppRoutes.searchResult:
+      //   return CupertinoPageRoute(builder: (_) => const SearchResultPage());
 
       // case AppRoutes.cartPage:
       //   return CupertinoPageRoute(builder: (_) => const CartPage());
@@ -110,8 +106,8 @@ class RouteGenerator {
       // case AppRoutes.passwordReset:
       //   return CupertinoPageRoute(builder: (_) => const PasswordResetPage());
 
-      case AppRoutes.newItems:
-        return CupertinoPageRoute(builder: (_) => const NewItemsPage());
+      // case AppRoutes.newItems:
+      //   return CupertinoPageRoute(builder: (_) => const NewItemsPage());
 
       // case AppRoutes.popularItems:
       //   return CupertinoPageRoute(builder: (_) => const PopularPackPage());
@@ -124,8 +120,8 @@ class RouteGenerator {
       case AppRoutes.bundleDetailsPage:
         return CupertinoPageRoute(builder: (_) => const BundleDetailsPage());
 
-      case AppRoutes.productDetails:
-        return CupertinoPageRoute(builder: (_) => const ProductDetailsPage());
+      // case AppRoutes.productDetails:
+      //   return CupertinoPageRoute(builder: (_) => const ProductDetailsPage());
 
       // case AppRoutes.createMyPack:
       //   return CupertinoPageRoute(builder: (_) => const BundleCreatePage());
@@ -133,8 +129,8 @@ class RouteGenerator {
       // case AppRoutes.orderSuccessfull:
       //   return CupertinoPageRoute(builder: (_) => const OrderSuccessfullPage());
 
-      case AppRoutes.orderFailed:
-        return CupertinoPageRoute(builder: (_) => const OrderFailedPage());
+      // case AppRoutes.orderFailed:
+      //   return CupertinoPageRoute(builder: (_) => const OrderFailedPage());
 
       case AppRoutes.myOrder:
         return CupertinoPageRoute(builder: (_) => const AllOrderPage());
@@ -225,8 +221,8 @@ class RouteGenerator {
       case AppRoutes.newPR:
         return CupertinoPageRoute(builder: (_) => const PrMasterPage());
 
-      case AppRoutes.selfAttendance:
-        return CupertinoPageRoute(builder: (_) => const SelfAttendanceScreen());
+      case AppRoutes.OnlyselfAttendance:
+        return CupertinoPageRoute(builder: (_) =>  AttendanceOnly());
 
       case AppRoutes.LaborAttendanceAdd:
         return CupertinoPageRoute(builder: (_) => const LabourAttendancePage());

@@ -8,10 +8,10 @@ class Constants {
   // static const String baseUrl =
   //     "http://192.168.1.24:1020/api";
 
-    // static const String baseUrl =
-    //   "http://192.168.1.28:1010/api"; //
+    static const String baseUrl =
+      "http://192.168.1.28:1010/api"; //
 
-     static const String baseUrl =
-      "http://13.233.153.154:2155"; // Change to your domain and port
+     // static const String baseUrl =
+     //  "http://13.233.153.154:2155"; // Change to your domain and port
 
 }

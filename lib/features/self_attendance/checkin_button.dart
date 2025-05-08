@@ -496,7 +496,7 @@ import 'check_in_check_out_provider.dart';  // Import your provider
 //           outerColor: Color(0xff7339c8), // Transparent outer color for a clean look
 //           reversed: isFinished,
 //           sliderButtonIcon:SvgPicture.asset(
-//             'assets/icons/attendance/user-tick.svg',
+//             'assets/icons/attendance_only/user-tick.svg',
 //             color: AppColors.primaryBlueFont, // Set the color here if needed
 //             height: 24.0, // Adjust size as needed
 //             width: 24.0, // Adjust size as needed
@@ -630,7 +630,7 @@ class _CheckInButtonState extends ConsumerState<CheckInButton> {
         });
       }
     } catch (e) {
-      AppLogger.error('❌ Failed to fetch attendance phase: $e');
+      AppLogger.error('❌ Failed to fetch attendance_only phase: $e');
     }
   }
 
@@ -730,8 +730,8 @@ class _CheckInButtonState extends ConsumerState<CheckInButton> {
   @override
   Widget build(BuildContext context) {
     if (isAttendanceFilled) {
-      // If both Check-In and Check-Out are filled, display attendance info.
-      AppLogger.info('📊 Attendance details are filled. Displaying attendance info.');
+      // If both Check-In and Check-Out are filled, display attendance_only info.
+      AppLogger.info('📊 Attendance details are filled. Displaying attendance_only info.');
 
       return Center(
         child: Container(
@@ -758,7 +758,7 @@ class _CheckInButtonState extends ConsumerState<CheckInButton> {
             outerColor: const Color(0xff7339c8),
             reversed: !isCheckInPhase, // ⬅️ Check-In: L ➡ R, Check-Out: R ➡ L
             sliderButtonIcon: SvgPicture.asset(
-              'assets/icons/attendance/user-tick.svg',
+              'assets/icons/attendance_only/user-tick.svg',
               color: AppColors.primaryBlueFont,
               height: 24.0,
               width: 24.0,
@@ -766,7 +766,7 @@ class _CheckInButtonState extends ConsumerState<CheckInButton> {
             textStyle: TextStyle(color: Colors.white, fontSize: 16.sp),
             sliderRotate: false,
             onSubmit: () {
-              AppLogger.info('🚪 SlideAction submitted, handling attendance slide...');
+              AppLogger.info('🚪 SlideAction submitted, handling attendance_only slide...');
               _handleAttendanceSlide();
             },
             child: Row(

@@ -161,7 +161,7 @@ class LabourAttendance {
       approvedBy: json["APPROVED_BY"],
       approvedDate: json["APPROVED_DATE"] != null ? DateTime.tryParse(json["APPROVED_DATE"]) : null,
       status: json["STATUS"],
-      contractorId: json["CONTRACTORID"],
+      contractorId: json["ContractorID"],
       base64Image: json["Base64Image"],
       fileName: json["FileName"],
     );

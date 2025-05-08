@@ -23,62 +23,50 @@ class SettingsPage extends StatelessWidget {
         ),
       ),
       backgroundColor: AppColors.cardColor,
-      body: Container(
-        margin: const EdgeInsets.all(AppDefaults.padding),
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppDefaults.padding,
-          vertical: AppDefaults.padding * 2,
-        ),
-        decoration: BoxDecoration(
-          color: AppColors.scaffoldBackground,
-          borderRadius: AppDefaults.borderRadius,
-        ),
-        child: Column(
-          children: [
-            AppSettingsListTile(
-              label: 'Language',
-              trailing: SvgPicture.asset(AppIcons.right),
-              onTap: () =>
-                  Navigator.pushNamed(context, AppRoutes.home),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16,),
+        child: Stack(
+          alignment: Alignment.topCenter,
+          children: <Widget>[
+            Padding(
+              padding: EdgeInsets.only(top: 30),
+              child: Container(
+                height: 300,
+                margin: EdgeInsets.all(16.0),
+                child: Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  color: Colors.white,
+                  child: Padding(
+                    padding: const EdgeInsets.all(18.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('Your Data'),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             ),
-            AppSettingsListTile(
-              label: 'Notification',
-              trailing: SvgPicture.asset(AppIcons.right),
-              onTap: () =>
-                  Navigator.pushNamed(context, AppRoutes.home),
-            ),
-            AppSettingsListTile(
-              label: 'Change Password',
-              trailing: SvgPicture.asset(AppIcons.right),
-              onTap: () =>
-                  Navigator.pushNamed(context, AppRoutes.home),
-            ),
-            AppSettingsListTile(
-              label: 'Change Phone Number',
-              trailing: SvgPicture.asset(AppIcons.right),
-              onTap: () =>
-                  Navigator.pushNamed(context, AppRoutes.home),
-            ),
-            AppSettingsListTile(
-              label: 'Edit Home Address',
-              trailing: SvgPicture.asset(AppIcons.right),
-              onTap: () =>
-                  Navigator.pushNamed(context, AppRoutes.home),
-            ),
-            AppSettingsListTile(
-              label: 'Location',
-              trailing: SvgPicture.asset(AppIcons.right),
-              onTap: () {},
-            ),
-            AppSettingsListTile(
-              label: 'Profile Setting',
-              trailing: SvgPicture.asset(AppIcons.right),
-              onTap: () => Navigator.pushNamed(context, AppRoutes.home),
-            ),
-            AppSettingsListTile(
-              label: 'Deactivate Account',
-              trailing: SvgPicture.asset(AppIcons.right),
-              onTap: () => Navigator.pushNamed(context, AppRoutes.home),
+            Container(
+              height: 90,
+              width: 90,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.black12,
+                ),
+                color: Colors.transparent,
+                image: DecorationImage(
+                  fit: BoxFit.cover,
+                  image: NetworkImage(
+                    'https://miro.medium.com/max/1400/1*-6WdIcd88w3pfphHOYln3Q.png',
+                  ),
+                ),
+              ),
             ),
           ],
         ),

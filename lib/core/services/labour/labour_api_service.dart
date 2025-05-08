@@ -173,6 +173,7 @@ class LabourApiService {
     final Map<String, String> headers = {
       "Content-Type": "application/json",
       "Authorization": authToken, // "Bearer ${authToken}" if it's a Bearer token
+
     };
 
     // Request body containing pagination and filter data
@@ -319,6 +320,7 @@ class LabourApiService {
       "LABOUR_CODE": labourCode,
       "LABOUR_CATEGORY": labourCategory,
       "COMMISSION_PER_LABOUR": commissionPerLabour,
+     // "CURRENCYID": 1000,
       "CURRENCYID": currencyId,
       "companyCode": companyCode,
     };
@@ -375,6 +377,13 @@ class LabourApiService {
     //final Uri url = Uri.parse("${baseUrl}/Delete-Labour");
     final Uri url = Uri.parse(ApiEndpoints.deleteLabour);
 
+    final String? companyCode = await SecureStorageUtil.readSecureData("CompanyCode");
+    final String? userId = await SharedPreferencesUtil.getString("ActiveUserID");
+
+    if (userId == null || companyCode == null) {
+      AppLogger.error('❌ Failed to retrieve authToken or CompanyCode');
+      return false; // Return false if authentication fails or CompanyCode is missing
+    }
 
     AppLogger.info('Deleting labour ${url.toString()}');
     // Get the current date in "yyyy-MM-dd" format (local date)
@@ -558,8 +567,9 @@ class LabourApiService {
     // Fetch authToken and CompanyCode from SecureStorageUtil or SharedPreferencesUtil
     final String? authToken = await SharedPreferencesUtil.getString("GeneratedToken");
     final String? userId = await SharedPreferencesUtil.getString("ActiveUserID");
+     final String? companyCode = await SecureStorageUtil.readSecureData("CompanyCode");
 
-    if (authToken == null || companyCode.isEmpty) {
+    if (authToken == null || companyCode == null || userId == null) {
       AppLogger.error('❌ Failed to retrieve authToken or CompanyCode');
       return false; // Return false if authentication fails or CompanyCode is missing
     }

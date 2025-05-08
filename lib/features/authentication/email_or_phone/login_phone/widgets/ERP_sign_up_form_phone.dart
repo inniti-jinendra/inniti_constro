@@ -159,7 +159,9 @@ class _SignUpFormPhoneState extends State<SignUpFormPhone> {
     } catch (e) {
       Navigator.pop(context); // Dismiss Progress Indicator
       AppLogger.error('❌ Error during phone number verification: $e');
-      CustomSnackbar.show(context, message: 'Error: $e');
+     // CustomSnackbar.show(context, message: 'Error: $e');
+      CustomSnackbar.show(context, message: 'Oops! No data found.\nPlease check the registered number and try again.',
+      );
     }
   }
 

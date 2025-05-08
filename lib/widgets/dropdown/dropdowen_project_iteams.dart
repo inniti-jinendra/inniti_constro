@@ -159,6 +159,191 @@ import '../../core/network/logger.dart';
 import '../../core/services/DropDownHandler/drop_down_hendler_api.dart';
 import 'custom_dropdown.dart';
 
+
+class ReusableDropdownHome extends StatefulWidget {
+  final String? label;
+  final String? initialValue;
+  final Function(String? name, int? id) onChanged;
+
+  const ReusableDropdownHome({
+    super.key,
+    this.label,
+    required this.onChanged,
+    this.initialValue,
+  });
+
+  @override
+  State<ReusableDropdownHome> createState() => _ReusableDropdownHomeState();
+}
+
+class _ReusableDropdownHomeState extends State<ReusableDropdownHome> {
+  List<ProjectItem> _projectItems = [];
+  String? _selectedName;
+  int? _selectedId;
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    AppLogger.info("🚀 Initializing ReusableDropdownHome for: ${widget.label}");
+    _fetchDropdownItems();
+  }
+
+  @override
+  void didUpdateWidget(covariant ReusableDropdownHome oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.initialValue != oldWidget.initialValue &&
+        widget.initialValue != _selectedName &&
+        _projectItems.isNotEmpty) {
+      AppLogger.info("🔁 Updating dropdown due to changed initialValue: ${widget.initialValue}");
+
+      final selected = _projectItems.firstWhere(
+            (item) => item.projectItemTypeName == widget.initialValue,
+        orElse: () => ProjectItem(projectItemTypeId: -1, projectItemTypeName: "Unknown"),
+      );
+
+      if (selected.projectItemTypeId != -1) {
+        setState(() {
+          _selectedName = selected.projectItemTypeName;
+          _selectedId = selected.projectItemTypeId;
+        });
+        AppLogger.debug("✅ Updated from didUpdateWidget: $_selectedName (ID: $_selectedId)");
+      } else {
+        AppLogger.warn("⚠️ initialValue not found in dropdown list.");
+      }
+    }
+  }
+
+  Future<void> _fetchDropdownItems() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      AppLogger.info("📡 Fetching dropdown items...");
+      final items = await DropDownHendlerApi().fetchProjectItemTypes();
+
+      if (mounted) {
+        setState(() {
+          _projectItems = items;
+          _isLoading = false;
+
+          if (_projectItems.isEmpty) {
+            _errorMessage = "No items available.";
+            return;
+          }
+
+          final match = widget.initialValue != null
+              ? _projectItems.firstWhere(
+                (e) => e.projectItemTypeName == widget.initialValue,
+            orElse: () => _projectItems.first,
+          )
+              : _projectItems.first;
+
+          _selectedName = match.projectItemTypeName;
+          _selectedId = match.projectItemTypeId;
+
+          AppLogger.debug("🟢 Initial selected: $_selectedName (ID: $_selectedId)");
+          widget.onChanged(_selectedName, _selectedId);
+        });
+      }
+    } catch (e) {
+      AppLogger.error("❌ Error fetching dropdown data: $e");
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = "Failed to load items. Please try again.";
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (widget.label != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4.0),
+              child: Text(
+                widget.label!,
+                style: GoogleFonts.nunitoSans(fontWeight: FontWeight.bold),
+              ),
+            ),
+          FormField<String>(
+            validator: (value) {
+              if (value == null || value == "-- Select --") {
+                return "Please select ${widget.label ?? "an item"}";
+              }
+              return null;
+            },
+            builder: (FormFieldState<String> state) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (_isLoading)
+                    const Text("Loading...")
+                  else if (_errorMessage != null)
+                    Text(
+                      _errorMessage!,
+                      style: const TextStyle(color: Colors.red, fontSize: 14),
+                    )
+                  else
+                    CommonDropdownCustom<String>(
+
+                      items: _projectItems.map((e) => e.projectItemTypeName).toList(),
+                      initialItem: _selectedName ?? "-- Select --",
+                      getItemName: (item) => item,
+                      onChanged: (selectedValue) {
+                        final selectedItem = _projectItems.firstWhere(
+                              (item) => item.projectItemTypeName == selectedValue,
+                          orElse: () => ProjectItem(projectItemTypeId: -1, projectItemTypeName: "Unknown"),
+                        );
+
+                        if (selectedItem.projectItemTypeId == -1) {
+                          AppLogger.warn("⚠️ Unknown selection.");
+                          return;
+                        }
+
+                        setState(() {
+                          _selectedName = selectedItem.projectItemTypeName;
+                          _selectedId = selectedItem.projectItemTypeId;
+                        });
+
+                        AppLogger.info("📝 Selected: $_selectedName (ID: $_selectedId)");
+
+                        state.didChange(selectedValue);
+                        widget.onChanged(_selectedName, _selectedId);
+                      },
+                    ),
+                  if (state.hasError)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 5),
+                      child: Text(
+                        state.errorText!,
+                        style: const TextStyle(color: Colors.red, fontSize: 12),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+
+
+
 class ReusableDropdown extends StatefulWidget {
   final String label;
   final String? initialValue;

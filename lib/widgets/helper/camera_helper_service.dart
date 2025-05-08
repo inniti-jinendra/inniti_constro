@@ -14,7 +14,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/models/attendance/emp_attendance.dart';
 import '../../core/network/api_endpoints.dart';
 import '../../core/network/logger.dart';
-import '../../features/attendance/AttendanceNotifier.dart';
+
+import '../../features/attendance_only/AttendanceNotifier.dart';
 import '../custom_dialog/custom_confirmation_dialog.dart';
 import '../global_loding/global_loader.dart';
 
@@ -368,20 +369,20 @@ class CameraHelper {
       final localPath = '${directory.path}/$name';
 
       final savedFile = await File(image.path).copy(localPath);
-      ref.read(capturedImagePathProvider.notifier).state = savedFile.path;
+      //ref.read(capturedImagePathProvider.notifier).state = savedFile.path;
       AppLogger.info('✅ Image saved locally at: $localPath');
       return savedFile.path;
     } else {
-      AppLogger.error('❌ No image captured');
+      AppLogger.error('No image captured');
       return null;
     }
   }
 
   // Function to get the stored image path globally using the provider
   String? getImagePath(WidgetRef ref) {
-    final path = ref.read(capturedImagePathProvider);
-    AppLogger.info('📥 Retrieved captured image path from provider: $path');
-    return path;
+    //final path = ref.read(capturedImagePathProvider);
+    //AppLogger.info('📥 Retrieved captured image path from provider: $path');
+    //return path;
   }
 
   // Fetch the location (latitude, longitude, and address)
@@ -416,7 +417,7 @@ class CameraHelper {
   static Future<void> uploadImage(
       BuildContext context,
       String imagePath,
-      String attendanceType,  // Use String for attendance type instead of enum
+      String attendanceType,  // Use String for attendance_only type instead of enum
       double latitude,
       double longitude,
       String geoAddress,
@@ -425,7 +426,7 @@ class CameraHelper {
       int empAttendanceId,      // Pass empAttendanceId
       ) async {
     try {
-      // Log the attendance type and ID before creating the Attendance object
+      // Log the attendance_only type and ID before creating the Attendance object
       AppLogger.info("🟡 Attendance Type: $attendanceType | Attendance ID: $empAttendanceId");
 
       AppLogger.info("📷 Image path: $imagePath");
@@ -449,7 +450,7 @@ class CameraHelper {
       AppLogger.info("🏠 Address: $geoAddress");
       AppLogger.info("💼 EmpAttendanceId: $empAttendanceId");
 
-      // Call API to upload the attendance with the image, time, and location
+      // Call API to upload the attendance_only with the image, time, and location
       final result = await addAttendanceWithImage(
         context,
         base64Image,
@@ -477,7 +478,7 @@ class CameraHelper {
 
 
 
-  // Add attendance with image, latitude, longitude, and address
+  // Add attendance_only with image, latitude, longitude, and address
   static Future<String> addAttendanceWithImage(
       BuildContext context,
       String base64Image,
@@ -506,7 +507,7 @@ class CameraHelper {
         return "Error: Missing required data.";
       }
 
-      // Log the attendance type before creating the Attendance object
+      // Log the attendance_only type before creating the Attendance object
       AppLogger.info("🟡 Attendance Type: $attendanceType | Attendance ID: $empAttendanceId");
 
 
@@ -565,7 +566,7 @@ class CameraHelper {
 
       final body = json.encode(empAttendance.toJson());
 
-      AppLogger.info("Sending attendance data to server with API URL: $apiUrl");
+      AppLogger.info("Sending attendance_only data to server with API URL: $apiUrl");
       final response = await http.put(apiUrl, body: body, headers: headers);
 
       // Log the response status code and body
@@ -580,8 +581,84 @@ class CameraHelper {
         return "Success";
 
       } else {
-        AppLogger.error("❌ Failed to upload attendance. Status Code: ${response.statusCode}");
+        AppLogger.error("❌ Failed to upload attendance_only. Status Code: ${response.statusCode}");
         AppLogger.error("🔴 Response Body: ${response.body}");
+        return "Failure";
+      }
+    } catch (e) {
+      AppLogger.error("❌ Error during API call: $e");
+      return "Error: $e";
+    }
+  }
+
+  // Add attendance_only with image, latitude, longitude, and address
+  static Future<String> addAttendanceWithLocationAndImage(
+      BuildContext context,
+      String base64Image,
+      String attendanceType,
+      double latitude,
+      double longitude,
+      String geoAddress,
+      DateTime? checkInTime,
+      DateTime? checkOutTime,
+      int empAttendanceId,
+      ) async {
+    try {
+      // 🔄 Show the global loader
+      GlobalLoader.show(context);
+
+      final prefs = await SharedPreferences.getInstance();
+      final companyCode = prefs.getString('CompanyCode');
+      final activeUserID = prefs.getString('ActiveUserID');
+      final activeProjectID = prefs.getString('ActiveProjectID');
+      final authToken = prefs.getString('GeneratedToken');
+
+      if (companyCode == null || authToken == null || activeUserID == null || activeProjectID == null) {
+        AppLogger.error("⚠️ Missing required SharedPreferences data.");
+        GlobalLoader.hide();
+        return "Error: Missing required data.";
+      }
+
+      AppLogger.info("🟡 Attendance Type: $attendanceType | Attendance ID: $empAttendanceId");
+
+      DateTime? inOutTime;
+      if (attendanceType == "IN" && checkInTime != null) {
+        inOutTime = checkInTime; // Use check-in time for "IN"
+      }
+
+      Attendance empAttendance = Attendance(
+        companyCode: companyCode,
+        userID: int.tryParse(activeUserID) ?? 0,
+        projectID: int.tryParse(activeProjectID) ?? 0,
+        empAttendanceID: empAttendanceId,
+        date: DateTime.now(),
+        createdUpdateDate: DateTime.now(),
+        inOutTime: inOutTime ?? DateTime.now(),
+        inOutTimeBase64Image: base64Image,
+        inOutTimeLatitude: latitude,
+        inOutTimeLongitude: longitude,
+        inOutTimeGeoAddress: geoAddress,
+        fileName: 'EmpAttendancePlaceIMG.png',
+        selfAttendanceType: attendanceType,
+      );
+
+      String requestBody = json.encode(empAttendance.toJson());
+      AppLogger.info("📤 Request Body: $requestBody");
+
+      final apiUrl = Uri.parse(ApiEndpoints.saveSelfAttendance);
+      final headers = {
+        "Content-Type": "application/json",
+        "Authorization": "$authToken",
+      };
+
+      final response = await http.put(apiUrl, body: requestBody, headers: headers);
+      GlobalLoader.hide();
+
+      if (response.statusCode == 200) {
+        AppLogger.info("✅ Attendance uploaded successfully");
+        return "Success";
+      } else {
+        AppLogger.error("❌ Failed to upload attendance_only. Status Code: ${response.statusCode}");
         return "Failure";
       }
     } catch (e) {

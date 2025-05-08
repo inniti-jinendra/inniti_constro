@@ -219,6 +219,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:inniti_constro/core/constants/app_colors.dart';
 
 import '../../core/network/logger.dart';
 import '../../core/utils/secure_storage_util.dart';
@@ -293,22 +294,42 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       String userId = await SharedPreferencesUtil.getString("ActiveUserID") ?? "";
       String token = await SecureStorageUtil.readSecureData("Token") ?? "";
       String activeProjectId = await SharedPreferencesUtil.getString("ActiveProjectID") ?? "";
+      String? isAuthorized = await SecureStorageUtil.readSecureData("IsAuthorized") ?? "false";
+      String? userType = await SecureStorageUtil.readSecureData("UserType") ?? "REGULAR";
 
       AppLogger.info("📌 Session Check:");
       AppLogger.info("🔹 LoggedIn: $loggedIn");
       AppLogger.info("🔹 UserID: $userId");
       AppLogger.info("🔹 Token: $token");
       AppLogger.info("🔹 ActiveProjectID: $activeProjectId");
+      AppLogger.info("🔹 IsAuthorized: $isAuthorized");
+      AppLogger.info("🔹 UserType: $userType");
 
       // ✅ Hide loader
       GlobalLoader.hide();
 
       // 🔐 Cross check: Must be logged in, have userID & token
-      if (loggedIn == "true" && userId.isNotEmpty && token.isNotEmpty) {
+      if (loggedIn == "true" && userId.isNotEmpty && token.isNotEmpty  && isAuthorized == "true") {
         AppLogger.info("✅ Valid session. Redirecting to Home...");
-        Navigator.pushReplacementNamed(context, AppRoutes.entryPoint);
+
+       // Navigator.pushReplacementNamed(context, AppRoutes.OnlyselfAttendance);
+       // Navigator.pushReplacementNamed(context, AppRoutes.entryPoint);
+
+        if (userType == "ATTENDANCE ONLY") {
+          Navigator.pushReplacementNamed(context, AppRoutes.OnlyselfAttendance);
+        } else {
+          Navigator.pushReplacementNamed(context, AppRoutes.entryPoint);
+        }
+
       } else {
         AppLogger.warn("❌ Invalid session. Redirecting to Login/Onboarding...");
+
+        // Log if not authorized
+        if (isAuthorized != "true") {
+          AppLogger.warn("❌ Not Authorized! IsAuthorized: $isAuthorized");
+        }
+        AppLogger.warn("❌ Invalid session. Redirecting to Login/Onboarding...");
+
         Navigator.pushReplacement(
           context,
           CustomPageTransition(OnboardingScreen()),
@@ -375,7 +396,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     double _height = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.primaryBlue,
       body: Stack(
         children: [
           Column(
@@ -391,7 +412,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 child: Text(
                   'INNITI SOFTWARE',  // Replace with your actual app name
                   style: TextStyle(
-                    color: Colors.black,
+                    color: AppColors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: _textAnimation.value,
                     fontFamily: 'Roboto', // Ensure you have added this font in pubspec.yaml
@@ -415,7 +436,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                     color: Colors.transparent,
                     borderRadius: BorderRadius.circular(30),
                   ),
-                  child: Image.asset('assets/images/inniti_logo.png') // Replace with your logo image
+                  child: Image.asset('assets/images/animated_splash_images/InnitiLogoWhite.png') // Replace with your logo image
               ),
             ),
           ),

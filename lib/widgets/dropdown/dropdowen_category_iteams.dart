@@ -191,7 +191,7 @@ class _ReusableDropdownCategoryState extends State<ReusableDropdownCategory> {
     final initialItem = _selectedName != null &&
         _categoryItems.any((e) => e.labourCategoryText == _selectedName)
         ? _selectedName!
-        : (_categoryItems.isNotEmpty ? _categoryItems.first.labourCategoryText : "-- Select --");
+        : "-- Select Category --";  // Default "Select Category" option
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -203,19 +203,24 @@ class _ReusableDropdownCategoryState extends State<ReusableDropdownCategory> {
           if (_isLoading)
           // Show loading indicator while fetching data
             Center(
-              child: Text("Loding..."),
+              child: Text("Loading..."),
             )
           else
             FormField<String>(
               validator: (value) =>
-              (value == null || value == "-- Select --") ? "Please select ${widget.label}" : null,
+              (value == null || value == "-- Select Category --")
+                  ? "Please select ${widget.label}"
+                  : null,
               builder: (state) => Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CommonDropdown<String>(
 
                     hintText: widget.label,
-                    items: _categoryItems.map((e) => e.labourCategoryText).toList(),
+                    items: [
+                      "-- Select Category --",  // Default option
+                      ..._categoryItems.map((e) => e.labourCategoryText).toList()
+                    ],
                     initialItem: initialItem,
                     getItemName: (item) => item,
                     onChanged: (value) {

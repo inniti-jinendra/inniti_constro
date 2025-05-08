@@ -1,4 +1,4 @@
-package com.example.inniti_constro
+package com.innitisoftware.inniticonstro
 
 import io.flutter.embedding.android.FlutterActivity
 

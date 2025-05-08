@@ -25,6 +25,7 @@ class LabourCardNew extends StatefulWidget {
   final int labourAttendanceID;
   final VoidCallback? onTap;
   final String selectedDate;
+  final bool enabled;
 
   const LabourCardNew({
     super.key,
@@ -37,6 +38,7 @@ class LabourCardNew extends StatefulWidget {
     required this.labourAttendanceID,
     required this.selectedDate,
     this.onTap,
+    this.enabled = false,
   });
 
   @override
@@ -46,27 +48,40 @@ class LabourCardNew extends StatefulWidget {
 class _LabourCardState extends State<LabourCardNew> {
   @override
   Widget build(BuildContext context) {
+    print("🔍 widget.enabled: ${widget.enabled}"); // 👈 This will print true or false
+
     return GestureDetector(
-      onTap: () async {
+      onTap:() async {
         try {
           AppLogger.info("📝 Tapped card for LabourID: ${widget.labourID}");
           AppLogger.info("📝 Tapped card for Company: ${widget.company}");
-          AppLogger.info(
-            "📝 Tapped card for LabourAttendanceID: ${widget.labourAttendanceID}",
-          );
+          AppLogger.info("📝 Tapped card for LabourAttendanceID: ${widget.labourAttendanceID}",);
+          AppLogger.info("📅 Date selacted on tap retrive=>> ${widget.selectedDate}");
+          AppLogger.info("📋 Attendance on tap retrieve => ${widget.attendance}");
+
+          // 🚫 Skip tap if Unavailable
+          if (widget.attendance == 'Unavailable') {
+            AppLogger.warn("🚫 Tap ignored: Labour is marked as Unavailable.");
+            return;
+          }
 
           if (widget.labourAttendanceID == 0) {
             AppLogger.info("➕ Add mode detected (LabourAttendanceID == 0)");
-            AppLogger.info("📅 Date => ${widget.selectedDate}");
+            AppLogger.info("📅 Date selacted=> ${widget.selectedDate}");
 
             final recordMap = await LabourAttendanceApiService()
-                .fetchLabourAttendanceadd(labourID: widget.labourID);
+                .fetchLabourAttendanceadd(
+              labourID: widget.labourID,
+              selectedDate: widget.selectedDate, // Passing selectedDate as a dynamic argument
+            );
 
             if (recordMap != null && context.mounted) {
               final editableRecord = LabourAttendance.fromJson(recordMap);
               AppLogger.info(
                 "🆕 Add mode: Parsed LabourAttendanceID: ${editableRecord.labourAttendanceId}",
               );
+              AppLogger.info("🆕 Add mode: Parsed contractorId: ${editableRecord.contractorId}",);
+              AppLogger.info("🆕 Add mode: Parsed  contractorName: ${editableRecord.contractorName}",);
 
               // await _getLocationAndShowDialog(actionButtonText: "Add", mode: FormMode.add);
               AppLogger.info("📝 Tapped card for LabourID pass: ${widget.labourID}");
@@ -76,6 +91,7 @@ class _LabourCardState extends State<LabourCardNew> {
                 actionButtonText: "Add",
                 mode: FormMode.add,
                 attendance: editableRecord,
+                selectedDate: widget.selectedDate,
               );
 
 
@@ -102,7 +118,7 @@ class _LabourCardState extends State<LabourCardNew> {
                 "📝 Edit mode: Parsed LabourAttendanceID: ${editableRecord.labourAttendanceId}",
               );
               AppLogger.info(
-                "📦 Full Parsed JSON: ${jsonEncode(editableRecord.toString())}",
+                "📦 contractorId pass: ${jsonEncode(editableRecord.contractorId)}",
               );
 
               // await _getLocationAndShowDialog(actionButtonText: "Edit", mode: FormMode.edit);
@@ -112,6 +128,7 @@ class _LabourCardState extends State<LabourCardNew> {
                 actionButtonText: "Edit",
                 mode: FormMode.edit,
                 attendance: editableRecord, // ✅ pass this in edit
+                selectedDate: widget.selectedDate,
               );
 
 
@@ -129,15 +146,15 @@ class _LabourCardState extends State<LabourCardNew> {
           }
         } catch (e, stackTrace) {
           AppLogger.error(
-            "❌ Failed to fetch or parse attendance: $e\n$stackTrace",
+            "❌ Failed to fetch or parse attendance_only: $e\n$stackTrace",
           );
         }
       },
-      child: _buildCardUI(),
+      child: _buildCardUI(isUnavailable: widget.attendance == 'Unavailable'),
     );
   }
 
-  Widget _buildCardUI() {
+  Widget _buildCardUI({required bool isUnavailable}) {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -145,7 +162,7 @@ class _LabourCardState extends State<LabourCardNew> {
       child: Container(
         height: 84,
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: isUnavailable ? Colors.grey[200] :AppColors.white,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
@@ -296,6 +313,7 @@ class _LabourCardState extends State<LabourCardNew> {
     required String actionButtonText,
     required FormMode mode, // Pass the mode here (either add or edit)
     LabourAttendance? attendance,
+    required String selectedDate,
   }) async {
     try {
       GlobalLoader.show(context); // Show loading indicator
@@ -364,7 +382,8 @@ class _LabourCardState extends State<LabourCardNew> {
               latitude: latitude,       // ✅ pass latitude
               longitude: longitude,     // ✅ pass longitude
               address: address,         // ✅ pass address
-              // attendance: mode == FormMode.edit ? editableRecord : null,
+              selectedDate: selectedDate,
+              // attendance_only: mode == FormMode.edit ? editableRecord : null,
             ),
           ),
         );

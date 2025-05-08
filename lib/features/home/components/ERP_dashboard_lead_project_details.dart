@@ -5,64 +5,148 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:inniti_constro/core/constants/app_colors.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 
+import '../../../core/models/dropdownhendler/projectItem_ddl.dart';
+import '../../../core/models/dropdownhendler/project_ddl.dart';
+import '../../../core/network/logger.dart';
+import '../../../core/services/DropDownHandler/drop_down_hendler_api.dart';
+import '../../../core/utils/secure_storage_util.dart';
+
 class ErpDashboardLeadProject extends StatefulWidget {
-  final String initialProject; // Initial project name
+  //final String initialProject; // Initial project name to display
   final double progressPercent; // Progress value
-  final VoidCallback? onSelectionChanged; // Callback for project selection
+  final Function(String? name, int? id)? onChanged; // Selection callback
 
   const ErpDashboardLeadProject({
     super.key,
-    required this.initialProject,
+   // required this.initialProject,
     required this.progressPercent,
-    this.onSelectionChanged,
+    this.onChanged,
   });
 
   @override
-  State<ErpDashboardLeadProject> createState() =>
-      _ErpDashboardLeadProjectState();
+  State<ErpDashboardLeadProject> createState() => _ErpDashboardLeadProjectState();
 }
 
 class _ErpDashboardLeadProjectState extends State<ErpDashboardLeadProject> {
-  late String selectedProject; // Maintain selected project
-  final List<String> allProjects = [
-    "PROJECT-1",
-    "Head Office",
-    "Ganesh Glory",
-    "SKYBELL",
-    "WATER LILY",
-    "SWAGAT V2",
-  ];
+  late String selectedProject;
+  List<Project> _project = [];
+  int? _selectedId;
+  bool _isLoading = false;
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    selectedProject = widget.initialProject;
+   // selectedProject = widget.initialProject;
+    selectedProject = '';
+    //_fetchDropdownItems();
+
+    _fetchDropdownItems(); // Fetch project dropdown items
+
   }
 
-  /// Shows the project selection dialog with dropdown
-  void _showProjectDialog() {
-    String tempSelection = selectedProject; // Use selectedProject as the initial value
+  // Fetch stored project details from secure storage
+  Future<void> _fetchStoredProject() async {
+    String? storedProjectName = await SecureStorageUtil.readSecureData("ActiveProjectName");
+    String? storedProjectId = await SecureStorageUtil.readSecureData("ActiveProjectID");
 
-    // Open the DropDown modal to select projects
+    if (storedProjectName != null && storedProjectId != null) {
+      setState(() {
+        selectedProject = storedProjectName;
+        _selectedId = int.tryParse(storedProjectId);
+      });
+    }
+  }
+
+  Future<void> _fetchDropdownItems() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      AppLogger.info("📡 Fetching dropdown items...");
+      final items = await DropDownHendlerApi().fetchProject();
+
+      if (mounted) {
+        _project = items;
+
+        if (_project.isEmpty) {
+          setState(() {
+            _errorMessage = "No items available.";
+            _isLoading = false;
+          });
+          return;
+        }
+
+        // ✅ Try to restore selected project from storage
+        final storedName = await SecureStorageUtil.readSecureData("ActiveProjectName");
+        final storedIdStr = await SecureStorageUtil.readSecureData("ActiveProjectID");
+        final storedId = storedIdStr != null ? int.tryParse(storedIdStr) : null;
+
+        final restored = _project.firstWhere(
+              (proj) => proj.plantId == storedId,
+          orElse: () => _project.first,
+        );
+
+        setState(() {
+          selectedProject = restored.plantName;
+          _selectedId = restored.plantId;
+          _isLoading = false;
+        });
+
+        AppLogger.debug("✅ Restored selection: $selectedProject (ID: $_selectedId)");
+
+        // Optional: notify parent
+        widget.onChanged?.call(selectedProject, _selectedId);
+      }
+    } catch (e) {
+      AppLogger.error("❌ Error fetching dropdown data: $e");
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = "Failed to load items. Please try again.";
+        });
+      }
+    }
+  }
+
+
+
+  void _showProjectDialog() {
+    if (_project.isEmpty) {
+      AppLogger.warn("⚠️ No project items available to show in dropdown.");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("No projects available.")),
+      );
+      return;
+    }
+
     DropDownState<String>(
       dropDown: DropDown<String>(
-        data: allProjects
-            .map((project) => SelectedListItem<String>(data: project))
+        data: _project
+            .map((project) => SelectedListItem<String>(data: project.plantName))
             .toList(),
         onSelected: (selectedItems) {
-          // Extract the selected project from the items
-          List<String> list = [];
-          for (var item in selectedItems) {
-            list.add(item.data);
-          }
+          if (selectedItems.isNotEmpty) {
+            final selectedName = selectedItems.first.data;
 
-          if (list.isNotEmpty) {
-            setState(() {
-              selectedProject = list.first; // Update selected project
-            });
+            if (selectedName != selectedProject) {
+              final selected = _project.firstWhere(
+                    (item) => item.plantName == selectedName,
+                orElse: () => _project.first,
+              );
 
-            // Call the callback to notify parent widget about the change
-            widget.onSelectionChanged?.call();
+              setState(() {
+                selectedProject = selected.plantName;
+                _selectedId = selected.plantId;
+              });
+
+              // Trigger callback
+              widget.onChanged?.call(selectedProject, _selectedId);
+
+              AppLogger.info("✅ User selected: $selectedProject (ID: $_selectedId)");
+            }
           }
         },
       ),
@@ -90,30 +174,17 @@ class _ErpDashboardLeadProjectState extends State<ErpDashboardLeadProject> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Left Side Text and Icon
+            // Left: Project Name & Days
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      selectedProject,
-                      style: GoogleFonts.nunitoSans(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primaryBlackFont,
-                      ),
-                    ),
-                    // IconButton(
-                    //   icon: const Icon(
-                    //     Icons.arrow_drop_down,
-                    //     size: 30,
-                    //     color: Colors.black54,
-                    //   ),
-                    //   onPressed: _showProjectDialog,
-                    // ),
-                  ],
+                Text(
+                  selectedProject,
+                  style: GoogleFonts.nunitoSans(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primaryBlackFont,
+                  ),
                 ),
                 Row(
                   children: [
@@ -138,7 +209,7 @@ class _ErpDashboardLeadProjectState extends State<ErpDashboardLeadProject> {
               ],
             ),
 
-            // Circular Progress Indicator
+            // Right: Progress Circle
             CircularPercentIndicator(
               radius: 40.0,
               lineWidth: 8.0,

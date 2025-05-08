@@ -37,6 +37,7 @@ class _VerifiedDialogState extends State<VerifiedDialog> {
       String email = await SharedPreferencesUtil.getString("ActiveEmailID") ?? "";
       String mobile = await SharedPreferencesUtil.getString("ActiveMobileNo") ?? "";
       String activeProjectId = await SharedPreferencesUtil.getString("ActiveProjectID") ?? "0";
+      String? userType = await SecureStorageUtil.readSecureData("UserType") ?? "REGULAR";
 
       AppLogger.info("📌 Retrieved User Session Data:");
       AppLogger.info("🔹 LoggedIn: $loggedIn");
@@ -45,12 +46,23 @@ class _VerifiedDialogState extends State<VerifiedDialog> {
       AppLogger.info("🔹 Email: $email");
       AppLogger.info("🔹 Mobile: $mobile");
       AppLogger.info("🔹 ActiveProjectID: $activeProjectId");
+      AppLogger.info("🔹 UserType: $userType");
 
       GlobalLoader.hide(); // ✅ Hide loader after API call
 
-      if (loggedIn == "true" && userId.isNotEmpty) {
+      if (loggedIn == "true" && userId.isNotEmpty ) {
         AppLogger.info("✅ User is authenticated. Redirecting to Home...");
-        Navigator.pushNamed(context, AppRoutes.entryPoint);
+        //Navigator.pushNamed(context, AppRoutes.entryPoint);
+
+        if (userType == "ATTENDANCE ONLY") {
+          AppLogger.info("ATTENDANCE ONLY user. Navigating to OnlySelfAttendance...");
+          Navigator.pushReplacementNamed(context, AppRoutes.OnlyselfAttendance);
+        } else {
+          AppLogger.info("REGULAR user. Navigating to entryPoint...");
+          Navigator.pushReplacementNamed(context, AppRoutes.entryPoint);
+        }
+
+
       } else {
         AppLogger.warn("❌ User session is invalid. Redirecting to Login...");
         Navigator.pushNamed(context, AppRoutes.login);

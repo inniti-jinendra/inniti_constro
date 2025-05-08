@@ -44,6 +44,7 @@ class LabourAttendanceApiService {
       "UserID": userID,
       "PageNumber": pageNumber,
       "PageSize": pageSize,
+      //"PlantID": 1000,
       "PlantID": plantID,
       "Date": date,
       "LabourName": labourName,
@@ -106,11 +107,12 @@ class LabourAttendanceApiService {
 
 
 
-  /// Fetches add labour attendance details for a specific labour on today's date
+  /// Fetches add labour attendance_only details for a specific labour on today's date
   Future<Map<String, dynamic>?> fetchLabourAttendanceadd({
     required int labourID,
+    required String selectedDate,
   }) async {
-    AppLogger.info("📥 [START] Fetching editable attendance data for LabourID: $labourID");
+    AppLogger.info("📥 [START] Fetching editable attendance_only data for LabourID: $labourID");
 
     final String? authToken = await SharedPreferencesUtil.getString("GeneratedToken");
     final String? companyCode = await SecureStorageUtil.readSecureData("CompanyCode");
@@ -137,8 +139,8 @@ class LabourAttendanceApiService {
 
       "CompanyCode": companyCode,
       "LabourID": labourID,
-      "PlantID": int.tryParse(plantID) ?? 0,
-      "Date": DateTime.now().toIso8601String().split('T').first, // Today's date
+      "PlantID": plantID,
+      "Date": selectedDate, // Today's date
 
     };
 
@@ -161,16 +163,16 @@ class LabourAttendanceApiService {
 
         if (responseJson['Data'] is List && responseJson['Data'].isNotEmpty) {
           final record = responseJson['Data'][0];
-          AppLogger.info("✅ [SUCCESS] Editable attendance record fetched: $record");
+          AppLogger.info("✅ [SUCCESS] Editable attendance_only record fetched: $record");
           return record;
         } else {
-          AppLogger.warn("⚠️ [EMPTY] No editable attendance record found for LabourID: $labourID");
+          AppLogger.warn("⚠️ [EMPTY] No editable attendance_only record found for LabourID: $labourID");
         }
       } else {
         AppLogger.error("❌ [FAIL] API failed with status ${response.statusCode}: ${response.body}");
       }
     } catch (e, stackTrace) {
-      AppLogger.error("❌ [EXCEPTION] While fetching editable attendance: $e\n$stackTrace");
+      AppLogger.error("❌ [EXCEPTION] While fetching editable attendance_only: $e\n$stackTrace");
     }
 
     AppLogger.warn("🚫 [END] Returning null for LabourID: $labourID");
@@ -178,12 +180,12 @@ class LabourAttendanceApiService {
   }
 
 
-  /// Get labour attendance edit details for a specific LabourAttendanceID on a specific date
+  /// Get labour attendance_only edit details for a specific LabourAttendanceID on a specific date
   Future<Map<String, dynamic>?> GetLabourAttendanceeditDetails({
     required int labourAttendanceID,
     required String date,  // Use a string for date like "2025-04-12"
   }) async {
-    AppLogger.info("📥 [START] Fetching attendance data for LabourAttendanceID: $labourAttendanceID on date: $date");
+    AppLogger.info("📥 [START] Fetching attendance_only data for LabourAttendanceID: $labourAttendanceID on date: $date");
 
     final String? authToken = await SharedPreferencesUtil.getString("GeneratedToken");
     final String? companyCode = await SecureStorageUtil.readSecureData("CompanyCode");
@@ -205,12 +207,13 @@ class LabourAttendanceApiService {
       "CompanyCode": companyCode,  // Set CompanyCode to "CONSTRO" as per the request
       "LabourAttendanceID": labourAttendanceID,
       "Date": date,  // Use the provided date string (e.g., "2025-04-12")
-      "PlantID": int.tryParse(plantID) ?? 0,
+      "PlantID": plantID,
+     // "PlantID": int.tryParse(plantID) ?? 0,
     };
 
     AppLogger.debug("📤 [REQUEST] POST to http://192.168.1.28:1010/api/LabourAttendance/Get-LabourAttendance-Data");
     AppLogger.debug("📝 Headers: $headers");
-    AppLogger.debug("📦 Body Get labour attendance edit details: ${jsonEncode(body)}");
+    AppLogger.debug("📦 Body Get labour attendance_only edit details: ${jsonEncode(body)}");
 
     try {
       final response = await http.post(
@@ -230,13 +233,13 @@ class LabourAttendanceApiService {
           AppLogger.info("✅ [SUCCESS] Attendance record fetched: $record");
           return record;
         } else {
-          AppLogger.warn("⚠️ [EMPTY] No attendance record found for LabourAttendanceID: $labourAttendanceID on date: $date");
+          AppLogger.warn("⚠️ [EMPTY] No attendance_only record found for LabourAttendanceID: $labourAttendanceID on date: $date");
         }
       } else {
         AppLogger.error("❌ [FAIL] API failed with status ${response.statusCode}: ${response.body}");
       }
     } catch (e, stackTrace) {
-      AppLogger.error("❌ [EXCEPTION] While fetching attendance: $e\n$stackTrace");
+      AppLogger.error("❌ [EXCEPTION] While fetching attendance_only: $e\n$stackTrace");
     }
 
     AppLogger.warn("🚫 [END] Returning null for LabourAttendanceID: $labourAttendanceID on date: $date");
@@ -244,7 +247,7 @@ class LabourAttendanceApiService {
   }
 
 
-  /// Save labour attendance
+  /// Save labour attendance_only
   Future<Map<String, dynamic>?> saveLabourAttendance({
     required int labourID,
     required String status,
@@ -264,6 +267,8 @@ class LabourAttendanceApiService {
     required String activityName,
     required String remark,
     required int? projectItemTypeId,
+    required int contractorID,
+    required String date,
   }) async {
     final String? authToken = await SharedPreferencesUtil.getString("GeneratedToken");
     final String? companyCode = await SecureStorageUtil.readSecureData("CompanyCode");
@@ -287,7 +292,9 @@ class LabourAttendanceApiService {
       "LABOUR_ATTENDANCEID": 0,
       "PLANT_ID": plantID,
       "LABOUR_ID": labourID,
-      "DATE": DateTime.now().toIso8601String().split('T').first,
+     // "DATE": DateTime.now().toIso8601String().split('T').first,
+      "DATE": date,
+
       "IS_PRESENT": status,
       "OVER_TIME": overTime,
       "OVERTIME_RATE": overTimeRate,
@@ -303,8 +310,8 @@ class LabourAttendanceApiService {
       "CREATED_BY": userID,
       //"CREATED_BY": 13125,
       //"CREATED_DATE": DateTime.now().toIso8601String(),
-      "CREATED_DATE": DateTime.now().toIso8601String(),
-      "LAST_UPDATED_BY": 13125,
+      "CREATED_DATE": date,
+      "LAST_UPDATED_BY": userID,
       "LAST_UPDATED_DATE": DateTime.now().toIso8601String(),
       "IS_DELETED": false,
       "IS_APPROVED": false,
@@ -318,7 +325,8 @@ class LabourAttendanceApiService {
       "ACTIVITY_NAME": activityName,
       "PROJECT_ITEM_TYPEID": projectItemTypeId,
       "STATUS": "PENDING",
-      "CONTRACTORID": 1001,
+      "CONTRACTORID": contractorID,
+     // "CONTRACTORID": 1001,
       "companyCode": companyCode,
       "ContractorName": contractorName,
       "LabourName": labourName,
@@ -327,7 +335,7 @@ class LabourAttendanceApiService {
       "FileName": fileName,
     };
 
-    AppLogger.debug("📤 [REQUEST] POST to Save Labor Attedance${ApiEndpoints.addLabourAttendance}");
+    AppLogger.debug("📤 [REQUEST]c${ApiEndpoints.addLabourAttendance}");
     AppLogger.debug("📝 Headers: $headers");
     AppLogger.debug("📦 Body for Save Labor Attedance: ${jsonEncode(body)}");
 
@@ -353,7 +361,7 @@ class LabourAttendanceApiService {
         AppLogger.error("❌ API failed: ${response.statusCode} ${response.body}");
       }
     } catch (e, stackTrace) {
-      AppLogger.error("❌ Exception while saving attendance: $e\n$stackTrace");
+      AppLogger.error("❌ Exception while saving attendance_only: $e\n$stackTrace");
     }
 
     return null;
@@ -362,7 +370,7 @@ class LabourAttendanceApiService {
 
 
 
-  /// Edits labour attendance details for a specific labour
+  /// Edits labour attendance_only details for a specific labour
   Future<Map<String, dynamic>?> editLabourAttendance({
     required int labourAttendanceID,
     required int labourID,
@@ -388,8 +396,9 @@ class LabourAttendanceApiService {
     required dynamic approvedDate, // can be String? or dynamic depending on format
     required bool isPaid,
     required int projectItemTypeId,
+    required String date,
   }) async {
-    AppLogger.info("📥 [START] Editing attendance data for labourAttendanceID: $labourAttendanceID");
+    AppLogger.info("📥 [START] Editing attendance_only data for labourAttendanceID: $labourAttendanceID");
 
     final String? authToken = await SharedPreferencesUtil.getString("GeneratedToken");
     final String? companyCodeStored = await SecureStorageUtil.readSecureData("CompanyCode");
@@ -413,7 +422,9 @@ class LabourAttendanceApiService {
       "LABOUR_ATTENDANCEID": labourAttendanceID,
       "PLANT_ID": int.tryParse(plantID) ?? 0,
       "LABOUR_ID": labourID,
-      "DATE": DateTime.now().toIso8601String().split('T').first,
+      //"DATE": DateTime.now().toIso8601String().split('T').first,
+      "CREATED_DATE": date,
+
       "IS_PRESENT": status,
       "OVER_TIME": overtime,
       "OVERTIME_RATE": overtimeRate,
@@ -422,9 +433,9 @@ class LabourAttendanceApiService {
       "TOTAL_HRS": totalHours,
       "CREATED_BY": userID,
       //"CREATED_BY": 13125,
-      "CREATED_DATE": DateTime.now().toIso8601String(),
+      "CREATED_DATE": date,
       //"CREATED_DATE": null,
-      "LAST_UPDATED_BY": 0,
+      "LAST_UPDATED_BY": userID,
       "LAST_UPDATED_DATE": DateTime.now().toIso8601String(),
       "STATUS": "PENDING",
       //"CONTRACTORID": 1001,

@@ -52,6 +52,9 @@ class AuthenticationApiService {
   }) async {
     final companyCode = await SharedPreferencesUtil.getString("CompanyCode", defaultValue: "CONSTRO");
     final url = ApiEndpoints.generateOtp;
+    //final url = "http://192.168.1.17:1015/api/UserAuthentication/Generate-OTP";
+
+    //final companyCode = await SharedPreferencesUtil.getString("CompanyCode", defaultValue: "CONSTRO");
 
     // final Map<String, dynamic> requestBody = {"CompanyCode": companyCode};
     //
@@ -67,8 +70,18 @@ class AuthenticationApiService {
       "MobileNumber": phoneNumber ?? ""
     };
 
+
+    final authToken = await SharedPreferencesUtil.getString("AuthToken"); // Or however you retrieve the token
+
+    final Map<String, String> headers = {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $authToken",
+      "CompanyCode": companyCode,
+    };
+
     AppLogger.info('🔹 API Request: [POST] $url');
     AppLogger.debug('➡️ Request Body: ${jsonEncode(requestBody)}');
+    AppLogger.debug('➡️ Request headers: ${jsonEncode(headers)}');
 
     GlobalLoader.show(context);
 
@@ -76,7 +89,10 @@ class AuthenticationApiService {
       final response = await NetworkHelper.post(
         url: url,
         body: requestBody,
-        headers: {'Content-Type': 'application/json'},
+       //headers: headers,
+       //   headers: {
+       //     'Content-Type': 'application/json'
+       //   },
       );
 
       if (response['StatusCode'] == 200 && response['Data'] != null) {
@@ -108,8 +124,14 @@ class AuthenticationApiService {
     await SecureStorageUtil.writeSecureData("MobileNo", user.mobile);
 
     await SecureStorageUtil.writeSecureData("UserFullName", user.fullName);
+    await SecureStorageUtil.writeSecureData("UserType", user.userType);
     await SecureStorageUtil.writeSecureData('userData', jsonEncode(user.toJson()));
+
+    // ✅ Initially mark as unauthorized (you can later change this based on the API response)
+    await SecureStorageUtil.writeSecureData("IsAuthorized", "false");
 
     AppLogger.info('✅ User session stored securely');
   }
+
+
 }

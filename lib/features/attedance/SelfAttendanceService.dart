@@ -76,7 +76,7 @@ class SelfAttendanceService {
   static const String baseUrl = 'https://crudcrud.com/api/3cce3d0a2c524bb099083ed3a99e8b39/selfattendance';
 
 
-// ✅ Fetch all attendance data
+// ✅ Fetch all attendance_only data
   static Future<List<SelfAttendanceData>> fetchSelfAttendanceData() async {
     try {
       final companyCode = await SharedPreferencesUtil.getString('CompanyCode');
@@ -106,14 +106,14 @@ class SelfAttendanceService {
               item['UserID'] == int.tryParse(activeUserID);
         }).toList();
 
-        AppLogger.info("✅ Filtered attendance data count: ${filteredList.length}");
+        AppLogger.info("✅ Filtered attendance_only data count: ${filteredList.length}");
 
         return filteredList
             .map((item) => SelfAttendanceData.fromJson(item))
             .toList();
       } else {
         AppLogger.error("❌ HTTP Error - Status Code: ${response.statusCode}");
-        throw Exception('Failed to load attendance data');
+        throw Exception('Failed to load attendance_only data');
       }
     } catch (e) {
       AppLogger.error("❌ Exception in fetchSelfAttendanceData: $e");
@@ -121,7 +121,7 @@ class SelfAttendanceService {
     }
   }
 
-  // ✅ Create (POST) a new attendance record
+  // ✅ Create (POST) a new attendance_only record
   static Future<bool> createSelfAttendance(SelfAttendanceData data) async {
     try {
       final Uri apiUrl = Uri.parse(baseUrl);
@@ -142,7 +142,7 @@ class SelfAttendanceService {
     }
   }
 
-  // ✅ Update (PUT) an existing attendance record
+  // ✅ Update (PUT) an existing attendance_only record
   static Future<bool> updateSelfAttendance(SelfAttendanceData data) async {
     try {
       if (data.empAttendanceId.isEmpty) {
@@ -168,7 +168,7 @@ class SelfAttendanceService {
     }
   }
 
-  // ✅ Delete a specific attendance record
+  // ✅ Delete a specific attendance_only record
   static Future<bool> deleteSelfAttendance(String id) async {
     try {
       if (id.isEmpty) {

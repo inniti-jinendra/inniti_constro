@@ -2,7 +2,7 @@
 // import 'package:flutter/cupertino.dart';
 // import 'package:inniti_constro/routes/unknown_page.dart';
 //
-// import '../features/attendance/attendance_screen.dart';
+// import '../features/attendance_only/attendance_screen.dart';
 // import '../features/authentication/OtpVerification/otp_screen.dart';
 // import '../features/authentication/company_code/company_code_screen.dart';
 // import '../features/authentication/email_or_phone/phone_login_screen.dart';
@@ -26,7 +26,7 @@
 //   static const String emailOrPhone = '/emailOrPhone';
 //   static const String otp = '/OtpVerification';
 //   static const String home = '/home';
-//   static const String attendance = '/attendance';
+//   static const String attendance_only = '/attendance_only';
 //   static const String orders = '/orders';
 //   static const String profile = '/profile';
 //   static const String drawerPage = '/drawerPage';
@@ -51,7 +51,7 @@
 //         return _buildRoute(OtpVerification(), settings);
 //       case home:
 //         return _buildRoute(HomePage(), settings);
-//       case attendance:
+//       case attendance_only:
 //         return _buildRoute(AttendanceScreen(), settings);
 //       case orders:
 //         return _buildRoute(OrdersScreen(), settings);
@@ -181,6 +181,7 @@ class AppRoutes {
 
   /* <---- Purchase Requisition -----> */
   static const selfAttendance = "/selfAttendance";
+  static const OnlyselfAttendance = "/OnlySelfAttendance";
   static const LaborAttendanceAdd = "/laborAttendanceadd";
 
   /* <---- User Profile -----> */

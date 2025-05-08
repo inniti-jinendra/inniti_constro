@@ -1,6 +1,6 @@
 /// Centralized API endpoints for better management and consistency
 class ApiEndpoints {
-  //static const String baseUrl = "http://192.168.1.28:1010/api";  // ✅ Correct IP
+ // static const String baseUrl = "http://192.168.1.12:1015/api";  // ✅ Correct IP
   static const String baseUrl = "http://13.233.153.154:2155/api";  // ✅ Correct IP
 
   /// Authentication Endpoints
@@ -23,6 +23,7 @@ class ApiEndpoints {
   static const String fetchContractorsDDL = "$baseUrl/DropDownHendler/Fetch-Contractors-DDL";
   static const String fetchLabourCategoriesDDL = "$baseUrl/DropDownHendler/Fetch-LabourCategory-DDL";
   static const String fetchProjectItemTypeDDL = "$baseUrl/DropDownHendler/Fetch-ProjectItemType-DDL";
+  static const String fetchProjectDDL = "$baseUrl/DropDownHendler/Fetch-Project-DDL";
 
 
   /// Labour Attendance Endpoints
@@ -42,5 +43,17 @@ class ApiEndpoints {
   static const String fetchSelfAttendanceData = "$baseUrl/SelfAttendance/Fetch-SeltAttendance-Data";
   /// Save Self Attendance
   static const String saveSelfAttendance = "$baseUrl/SelfAttendance/Save-Self-Attendance";
+
+  /// Self Only Attendance Endpoints
+  /// Fetch Only Self Attendance Details Data
+  static const String fetchOnlySelfAttendanceData = "$baseUrl/AttendanceOnly/Fetch-AttendanceOnly-Details";
+ /// Fetch Only Self Attendance Details Data
+  static const String fetchOnlySelfAttendanceListData = "$baseUrl/AttendanceOnly/Fetch-AttendanceOnly-List";
+
+
+
+  /// Fetch User Profile Account Details Data
+  static const String fetchUserAccountDetails = "$baseUrl/UserProfile/Get-UserProfile-Data";
+
 
 }

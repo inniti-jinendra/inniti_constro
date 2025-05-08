@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -8,8 +9,8 @@ import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/models/LabourAttendance/LabourAttendance.dart';
 import '../../../../../core/network/logger.dart';
 import '../../../../../core/services/LabourAttendance/labour_attendance_api_service.dart';
+import '../../../../core/utils/secure_storage_util.dart';
 import 'labord_card_page.dart';
-
 
 class LabourAttendancePage extends StatefulWidget {
   const LabourAttendancePage({super.key});
@@ -19,6 +20,8 @@ class LabourAttendancePage extends StatefulWidget {
 }
 
 class _LabourAttendancePageState extends State<LabourAttendancePage> {
+  String? _projectName;
+
   // Controllers for the text fields
   TextEditingController labourController = TextEditingController();
   TextEditingController contractorController = TextEditingController();
@@ -29,33 +32,18 @@ class _LabourAttendancePageState extends State<LabourAttendancePage> {
   int currentPage = 1;
   int pageSize = 10;
   ScrollController _scrollController = ScrollController();
+  late Timer _timer; // Timer to trigger regular refresh
+  int _refreshInterval = 2; // Time interval in seconds
 
-  List<LabourAttendance> labourAttendanceList = []; // Initialize to an empty list
+
+  List<LabourAttendance> labourAttendanceList =
+      []; // Initialize to an empty list
   List<LabourAttendance> filteredLabours = []; // Initialize to an empty list
 
   String selectedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+
   //String selectedDate = '2025-04-11'; // Set a default date or get today's date
   int totalPresent = 0; // Track total present count
-
-  // void _selectDate(BuildContext context) async {
-  //   final DateTime today = DateTime.now();
-  //   final DateTime? picked = await showDatePicker(
-  //     context: context,
-  //     initialDate: today, // current date
-  //     firstDate: DateTime(2000), // allow past dates
-  //     lastDate: today, // disallow future dates
-  //   );
-  //
-  //   if (picked != null && picked != DateTime.parse(selectedDate)) {
-  //     setState(() {
-  //       selectedDate = DateFormat('yyyy-MM-dd').format(picked);
-  //     });
-  //
-  //     AppLogger.info("📅 Date changed to $selectedDate, re-fetching data...");
-  //     _fetchLabourAttendanceData(); // 🟢 Trigger API call when date changes
-  //
-  //   }
-  // }
 
   void _selectDate(BuildContext context) async {
     final DateTime today = DateTime.now();
@@ -79,20 +67,22 @@ class _LabourAttendancePageState extends State<LabourAttendancePage> {
           filteredLabours.clear(); // clear previous list
         });
 
-        AppLogger.info("📅 Date changed to $selectedDate, fetching new data...");
+        AppLogger.info(
+            "📅 Date changed to $selectedDate, fetching new data...");
         _fetchLabourAttendanceData();
       } else {
-        AppLogger.info("ℹ️ Same date selected: $selectedDate — keeping existing data.");
+        AppLogger.info(
+            "ℹ️ Same date selected: $selectedDate — keeping existing data.");
       }
     }
   }
-
 
   // This is called when the user scrolls to the end of the list
   void _onScroll() {
     if (_scrollController.position.atEdge) {
       // If the scroll is at the bottom, load the next page
-      if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
+      if (_scrollController.position.pixels ==
+          _scrollController.position.maxScrollExtent) {
         if (!isLoading && !isEndOfData) {
           _fetchLabourAttendanceData(); // Trigger next page load when reaching bottom
         }
@@ -108,9 +98,11 @@ class _LabourAttendancePageState extends State<LabourAttendancePage> {
     });
 
     try {
-      AppLogger.debug("📦 Fetching Labour Attendance data for Page: $currentPage");
+      AppLogger.debug(
+          "📦 Fetching Labour Attendance data for Page: $currentPage");
 
-      List<LabourAttendance> fetchedLabours = await LabourAttendanceApiService().fetchLabourAttendance(
+      List<LabourAttendance> fetchedLabours =
+          await LabourAttendanceApiService().fetchLabourAttendance(
         pageNumber: currentPage,
         pageSize: pageSize,
         labourName: null,
@@ -119,18 +111,89 @@ class _LabourAttendancePageState extends State<LabourAttendancePage> {
       );
 
       if (fetchedLabours.isNotEmpty) {
-        setState(() {
-          currentPage++; // Increment to fetch the next page in the future
-          filteredLabours.addAll(fetchedLabours); // Add new items to the list
+        fetchedLabours.forEach((labour) {
+          AppLogger.debug(
+              "Fetched Labour: Attendance=${labour.attendance}, presnet =${labour.totalPresent}");
         });
+
+        if (fetchedLabours.isNotEmpty) {
+          setState(() {
+            if (currentPage == 1) {
+              totalPresent =
+                  fetchedLabours.first.totalPresent ?? 0; // ✅ Set from 1st item
+            }
+            currentPage++;
+            filteredLabours.addAll(fetchedLabours);
+          });
+        } else {
+          setState(() {
+            isEndOfData = true;
+          });
+        }
       } else {
         setState(() {
           isEndOfData = true; // No more data
         });
       }
 
-      AppLogger.debug("📊 Fetched ${fetchedLabours.length} records. Total records: ${filteredLabours.length}");
+      AppLogger.debug(
+          "📊 Fetched ${fetchedLabours.length} records. Total records: ${filteredLabours.length}");
+    } catch (e) {
+      AppLogger.error("❌ Error fetching Labour Attendance data: $e");
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
+  Future<void> _fetchLabourAttendanceDataFilter() async {
+    if (isLoading) return;
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      AppLogger.debug(
+          "📦 Fetching Labour Attendance data for Page: $currentPage");
+
+      final labourNameFilter =
+          labourController.text.isEmpty ? null : labourController.text;
+      final contractorNameFilter =
+          contractorController.text.isEmpty ? null : contractorController.text;
+
+      List<LabourAttendance> fetchedLabours =
+          await LabourAttendanceApiService().fetchLabourAttendance(
+        pageNumber: currentPage,
+        pageSize: pageSize,
+        labourName: labourNameFilter,
+        contractorName: contractorNameFilter,
+        date: selectedDate,
+      );
+
+      if (fetchedLabours.isNotEmpty) {
+        for (var labour in fetchedLabours) {
+          AppLogger.debug(
+              "✅ Fetched Labour: ${labour.labourName}, Attendance=${labour.attendance}, Present=${labour.totalPresent}");
+        }
+
+        setState(() {
+          if (currentPage == 1) {
+            filteredLabours.clear();
+            totalPresent = fetchedLabours.first.totalPresent ?? 0;
+          }
+          currentPage++;
+          filteredLabours.addAll(fetchedLabours);
+        });
+      } else {
+        setState(() {
+          isEndOfData = true;
+        });
+      }
+
+      AppLogger.debug(
+          "📊 Total records after filter: ${filteredLabours.length}");
     } catch (e) {
       AppLogger.error("❌ Error fetching Labour Attendance data: $e");
     } finally {
@@ -143,32 +206,62 @@ class _LabourAttendancePageState extends State<LabourAttendancePage> {
   @override
   void initState() {
     super.initState();
+    _fetchStoredProject();
     _fetchLabourAttendanceData(); // Fetch Labour Data as soon as the page is initialized
+    _fetchLabourAttendanceDataFilter(); // Fetch Labour Data as soon as the page is initialized
     // Add listener to scroll controller
     _scrollController.addListener(_onScroll);
+
+    // 🔁 Auto-refresh every 2 seconds
+    // Set up the periodic timer to refresh data
+    _timer = Timer.periodic(Duration(seconds: _refreshInterval), (timer) {
+      _refreshLabours();
+      _fetchLabourAttendanceData(); // Fetch Labour Data as soon as the page is initialized
+      _fetchLabourAttendanceDataFilter(); // Fetch Labour Data as soon as the page i
+      AppLogger.info("Refrash...");
+    });
+
   }
 
   @override
   void dispose() {
     //_scrollController.removeListener(_onScroll); // Remove the listener when disposed
     _scrollController.dispose();
+
+    _timer.cancel();
     super.dispose();
+  }
+
+  // Fetch the stored project name and ID
+  Future<void> _fetchStoredProject() async {
+    try {
+      final projectName =
+          await SecureStorageUtil.readSecureData("ActiveProjectName");
+      setState(() {
+        _projectName = projectName;
+      });
+
+      // Log the fetched project name (for debugging)
+      if (_projectName != null) {
+        AppLogger.info(
+            "Fetched Active Project on Labor Master Attedance: $_projectName");
+      }
+    } catch (e) {
+      AppLogger.error("Error fetching project from secure storage: $e");
+    }
   }
 
   void filterLabours() {
     String labourName = labourController.text.toLowerCase();
     String contractorName = contractorController.text.toLowerCase();
-    String mobileNumber = mobileController.text.toLowerCase();
 
     setState(() {
       filteredLabours = labourAttendanceList.where((labour) {
         String name = labour.labourName.toLowerCase();
         String company = labour.contractorName.toLowerCase();
-        String contact = labour.labourID.toString().toLowerCase(); // Adjust as necessary for the contact field
 
         return (labourName.isEmpty || name.contains(labourName)) &&
-            (contractorName.isEmpty || company.contains(contractorName)) &&
-            (mobileNumber.isEmpty || contact.contains(mobileNumber));
+            (contractorName.isEmpty || company.contains(contractorName));
       }).toList();
     });
   }
@@ -176,20 +269,44 @@ class _LabourAttendancePageState extends State<LabourAttendancePage> {
   // Clear all filters
   void clearFilters() {
     setState(() {
+      currentPage = 1;
+      isEndOfData = false;
+      filteredLabours.clear();
+      labourAttendanceList.clear();
+      _fetchLabourAttendanceData(); // Re-fetch default data
+
       labourController.clear();
       contractorController.clear();
-      mobileController.clear();
+
       filteredLabours = List.from(labourAttendanceList);
-      totalPresent = filteredLabours.where((labour) => labour.attendance == "P").length;
+      totalPresent =
+          filteredLabours.where((labour) => labour.attendance == "P").length;
     });
   }
 
   // Refresh Labour Data (simulate reload)
+  // Future<void> _refreshLabours() async {
+  //   setState(() => isLoading = true);
+  //   await Future.delayed(const Duration(seconds: 1));
+  //   _fetchLabourAttendanceData();
+  //
+  //   setState(() => isLoading = false);
+  // }
+
   Future<void> _refreshLabours() async {
     setState(() => isLoading = true);
-    await Future.delayed(const Duration(seconds: 1));
-    setState(() => isLoading = false);
+
+    try {
+      await _fetchLabourAttendanceData(); // ✅ Ensure this updates filteredLabours too
+      await _fetchLabourAttendanceDataFilter(); // if needed
+    } catch (e) {
+      AppLogger.error("Refresh Error");
+    } finally {
+      setState(() => isLoading = false); // ✅ Always update UI
+    }
   }
+
+
 
   // Show filter bottom sheet
   void _showFilterBottomSheet(BuildContext context) {
@@ -200,7 +317,8 @@ class _LabourAttendancePageState extends State<LabourAttendancePage> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (context) => Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        padding:
+            EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
         child: Container(
           padding: const EdgeInsets.all(16),
           height: 450,
@@ -212,34 +330,59 @@ class _LabourAttendancePageState extends State<LabourAttendancePage> {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('CANCEL', style: TextStyle(color: Colors.red)),
+                    child: const Text('CANCEL',
+                        style: TextStyle(color: Colors.red)),
                   ),
                   TextButton(
+                    // onPressed: () {
+                    //   if (labourController.text.isEmpty &&
+                    //       contractorController.text.isEmpty ) {
+                    //     ScaffoldMessenger.of(context).showSnackBar(
+                    //       const SnackBar(content: Text('Please enter at least one filter value!'), backgroundColor: Colors.red),
+                    //     );
+                    //     return;
+                    //   }
+                    //   filterLabours();
+                    //   Navigator.pop(context);
+                    // },
                     onPressed: () {
                       if (labourController.text.isEmpty &&
-                          contractorController.text.isEmpty &&
-                          mobileController.text.isEmpty) {
+                          contractorController.text.isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please enter at least one filter value!'), backgroundColor: Colors.red),
+                          const SnackBar(
+                            content:
+                                Text('Please enter at least one filter value!'),
+                            backgroundColor: Colors.red,
+                          ),
                         );
                         return;
                       }
-                      filterLabours();
+
+                      setState(() {
+                        currentPage = 1;
+                        isEndOfData = false;
+                        filteredLabours.clear();
+                      });
+
+                      _fetchLabourAttendanceDataFilter();
                       Navigator.pop(context);
                     },
-                    child: const Text('SEARCH', style: TextStyle(color: Colors.blue)),
+
+                    child: const Text('SEARCH',
+                        style: TextStyle(color: Colors.blue)),
                   ),
                 ],
               ),
               const SizedBox(height: 10),
               _buildFilterInputField("Labour Name", labourController),
               _buildFilterInputField("Contractors Name", contractorController),
-              _buildFilterInputField("Mobile Number", mobileController),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: clearFilters,
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.grey[300]),
-                child: const Text('CLEAR FILTERS', style: TextStyle(color: Colors.black)),
+                style:
+                    ElevatedButton.styleFrom(backgroundColor: Colors.grey[300]),
+                child: const Text('CLEAR FILTERS',
+                    style: TextStyle(color: Colors.black)),
               ),
             ],
           ),
@@ -249,13 +392,15 @@ class _LabourAttendancePageState extends State<LabourAttendancePage> {
   }
 
   // Helper method to create filter input fields
-  Widget _buildFilterInputField(String label, TextEditingController controller) {
+  Widget _buildFilterInputField(
+      String label, TextEditingController controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: GoogleFonts.nunitoSans(fontSize: 14, fontWeight: FontWeight.w600),
+          style:
+              GoogleFonts.nunitoSans(fontSize: 14, fontWeight: FontWeight.w600),
         ),
         TextField(
           controller: controller,
@@ -271,7 +416,17 @@ class _LabourAttendancePageState extends State<LabourAttendancePage> {
 
   @override
   Widget build(BuildContext context) {
-    int totalPresent = filteredLabours.where((labour) => labour.attendance == "P").toList().length;
+    // int totalPresent = filteredLabours.where((labour) => labour.attendance_only == "P").toList().length;
+    //int totalPresent = fetchedLabours.isNotEmpty ? (fetchedLabours.first.totalPresent ?? 0) : 0;
+
+    // int totalPresent = filteredLabours.forEach((labour) => labour.totalPresent.toString();
+
+    filteredLabours.forEach((labour) {
+      AppLogger.info("Total Present: ${labour.totalPresent}");
+    });
+
+    // Log the total present count
+    AppLogger.info("🖨️ Total Present in build: $totalPresent");
 
     return Scaffold(
       backgroundColor: AppColors.white,
@@ -282,7 +437,25 @@ class _LabourAttendancePageState extends State<LabourAttendancePage> {
           icon: const Icon(Icons.chevron_left, size: 30),
           color: AppColors.primaryBlue,
         ),
-        title: Text('Labour Attendance', style: GoogleFonts.nunitoSans(fontWeight: FontWeight.w700, fontSize: 18, color: AppColors.primaryBlackFont)),
+        title: Column(
+          children: [
+            Text('Labour Attendance',
+                style: GoogleFonts.nunitoSans(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 18,
+                    color: AppColors.primaryBlackFont),
+
+            ),
+            Text(
+              _projectName ?? 'No Project Selected',
+              style: GoogleFonts.nunitoSans(
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+                color: AppColors.primaryBlackFont,
+              ),
+            ),
+          ],
+        ),
         actions: [
           IconButton(
             icon: Icon(Icons.filter_list_alt, color: AppColors.primaryBlue),
@@ -313,14 +486,16 @@ class _LabourAttendancePageState extends State<LabourAttendancePage> {
                   ),
                 ],
               ),
-
               const SizedBox(height: 16),
               Expanded(
-                child: ListView.builder(
-                  controller: _scrollController,  // Attach the scroll controller here
+                child: filteredLabours.isEmpty && !isLoading
+                    ? const Center(child: Text("No data found")) :
+                ListView.builder(
+                  controller: _scrollController,
+                  // Attach the scroll controller here
                   physics: const AlwaysScrollableScrollPhysics(),
-                 // physics: const BouncingScrollPhysics(),
-                 // itemCount: filteredLabours.length,
+                  // physics: const BouncingScrollPhysics(),
+                  // itemCount: filteredLabours.length,
                   itemCount: filteredLabours.length + (isLoading ? 1 : 0),
                   // itemBuilder: (context, index) {
                   //   final labour = filteredLabours[index];
@@ -330,11 +505,19 @@ class _LabourAttendancePageState extends State<LabourAttendancePage> {
                     if (index == filteredLabours.length) {
                       return const Padding(
                         padding: EdgeInsets.symmetric(vertical: 16.0),
-                        child: Center(child: CircularProgressIndicator()),  // Loader at the bottom
+                        child: Center(
+                            child:
+                                CircularProgressIndicator()), // Loader at the bottom
                       );
                     }
 
                     final labour = filteredLabours[index];
+
+                    // Log each labour item being rendered
+                    AppLogger.info(
+                        'Rendering Labour: totalPresent=${labour.totalPresent},');
+                    AppLogger.info(
+                        'Rendering Labour: Attedance...=${labour.attendance},');
 
                     // Map attendance status to text
                     String attendanceText = "";
@@ -353,16 +536,21 @@ class _LabourAttendancePageState extends State<LabourAttendancePage> {
                         break;
                     }
 
+                    final status = _getAttendanceStatus(labour.attendance);
+                    AppLogger.info("Rendering Labour:=> ID=${labour.labourID}, AttendanceRaw=${labour.attendance}, Status=$status, Enabled=${status != 'U'}");
+
                     return LabourCardNew(
                       id: labour.labourID.toString(),
                       name: labour.labourName,
                       company: labour.contractorName,
                       labourCategory: labour.labourCategory,
                       //attendance: labour.attendance,
-                      attendance: _getAttendanceStatus(labour.attendance), // not just labour.attendance
-                      labourID: labour.labourID, // Pass as int
-                      labourAttendanceID : labour.LabourAttendanceID,
+                      attendance: _getAttendanceStatus(labour.attendance),
+                      // not just labour.attendance
+                      labourID: labour.labourID,
+                      labourAttendanceID: labour.LabourAttendanceID,
                       selectedDate: selectedDate,
+                      enabled: _getAttendanceStatus(labour.attendance) != 'U',
                     );
                   },
                 ),
@@ -375,7 +563,8 @@ class _LabourAttendancePageState extends State<LabourAttendancePage> {
   }
 
   // ✅ Info Card Widget (Date & Total Present)
-  Widget _buildInfoCard(IconData icon, String title, String value, {VoidCallback? onTap}) {
+  Widget _buildInfoCard(IconData icon, String title, String value,
+      {VoidCallback? onTap}) {
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
@@ -438,8 +627,4 @@ class _LabourAttendancePageState extends State<LabourAttendancePage> {
         return 'Unknown';
     }
   }
-
-
 }
-
-

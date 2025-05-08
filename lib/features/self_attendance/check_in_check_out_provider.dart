@@ -79,7 +79,7 @@ import 'package:intl/intl.dart';  // For formatting the time
 // Define a state class to hold the check-in and check-out times
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/models/attendance/self_attendance_data.dart';
+import '../../core/models/attendance/self_attendance/self_attendance_data.dart';
 import '../../core/network/logger.dart';
 import '../../core/services/attendance/attendance_api_service.dart';
 
@@ -163,20 +163,20 @@ final flutterSecureStorageProvider = Provider<FlutterSecureStorage>((ref) {
 
 final selfAttendanceProvider = FutureProvider<List<SelfAttendanceData>>((ref) async {
   // Fetch the response from the API (which now returns a list)
-  final attendanceDataList = await AttendanceApiService.fetchSelfAttendanceData();
+  final attendanceDataList = await SelfAttendanceApiService.fetchSelfAttendanceData();
 
   if (attendanceDataList.isEmpty) {
-    throw Exception("No attendance data available");
+    throw Exception("No attendance_only data available");
   }
 
   // Log the first object in the list (if available)
   final firstAttendanceRecord = attendanceDataList.first;
-  AppLogger.info("📦 First attendance record: $firstAttendanceRecord");
+  AppLogger.info("📦 First attendance_only record: $firstAttendanceRecord");
 
-  // Log specific fields of the first attendance record for better clarity
-  AppLogger.info("🔍 First attendance record - empAttendanceId: ${firstAttendanceRecord.empAttendanceId}");
-  AppLogger.info("🔍 First attendance record - inTime: ${firstAttendanceRecord.inTime}");
-  AppLogger.info("🔍 First attendance record - outTime: ${firstAttendanceRecord.outTime}");
+  // Log specific fields of the first attendance_only record for better clarity
+  AppLogger.info("🔍 First attendance_only record - empAttendanceId: ${firstAttendanceRecord.empAttendanceId}");
+  AppLogger.info("🔍 First attendance_only record - inTime: ${firstAttendanceRecord.inTime}");
+  AppLogger.info("🔍 First attendance_only record - outTime: ${firstAttendanceRecord.outTime}");
 
   // Return the list of SelfAttendanceData
   return attendanceDataList;

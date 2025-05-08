@@ -37,6 +37,12 @@ class LabourAttendance {
       totalCount: json['TotalCount'] ?? 0,
     );
   }
+
+  @override
+  String toString() {
+    return 'LabourID: $labourID, Name: $labourName, Contractor: $contractorName, Attendance: $attendance, TotalPresent: $totalPresent, LabourCategory: $labourCategory';
+  }
+
 }
 
 class LabourAttendanceedit {

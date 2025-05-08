@@ -16,9 +16,12 @@ import '../../../../../widgets/helper/camera_helper_service.dart';
 
 import '../../../../core/models/dropdownhendler/projectItem_ddl.dart';
 import '../../../../core/services/DropDownHandler/drop_down_hendler_api.dart';
+import '../../../../core/utils/secure_storage_util.dart';
 import 'TimeDisplay.dart';
 import 'labor_master_attedance_modal.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'labour_attendance_screen.dart';
 
 class SimpleAttendanceForm extends ConsumerStatefulWidget {
   final FormMode mode;
@@ -27,6 +30,7 @@ class SimpleAttendanceForm extends ConsumerStatefulWidget {
   final double latitude;
   final double longitude;
   final String address;
+  final String selectedDate;
 
   const SimpleAttendanceForm(
       {super.key,
@@ -35,7 +39,8 @@ class SimpleAttendanceForm extends ConsumerStatefulWidget {
       required this.address,
       required this.labourID,
       required this.mode,
-      this.attendance});
+        required this.selectedDate,
+        this.attendance});
 
   @override
   ConsumerState<SimpleAttendanceForm> createState() =>
@@ -51,6 +56,7 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
   late TextEditingController _remarksController;
   late TextEditingController _activityController;
   late TextEditingController _workingHoursController;
+  late TextEditingController _dateController;
 
   String? contractorName = 'Inniti Software';
   String? labourName;
@@ -59,6 +65,7 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
   TimeOfDay? _outTime;
   String? projectItem;
   int? projectItemId; // Stores selected ID
+  String? _projectName;
   String? projectItemName;
 
   //List<Map<String, dynamic>> projectItems = [];
@@ -76,62 +83,6 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
   bool isImageUploaded = false;
   bool _isFirstLoad = true;
 
-  // int? _selectedProjectItemTypeId;
-  // String? _selectedProjectItemTypeName;
-
-// Function to convert TimeOfDay to DateTime
-//   DateTime convertTimeOfDayToDateTime(TimeOfDay timeOfDay) {
-//     final now = DateTime.now();
-//     return DateTime(
-//         now.year, now.month, now.day, timeOfDay.hour, timeOfDay.minute);
-//   }
-
-  // String _calculateTimeDifference() {
-  //   final inTimeText = _inTimeController.text;
-  //   final outTimeText = _outTimeController.text;
-  //
-  //   if (inTimeText.isEmpty || outTimeText.isEmpty) {
-  //     return '0h 0m';
-  //   }
-  //
-  //   try {
-  //     // Parse TimeOfDay from formatted string like "2:30 PM"
-  //     TimeOfDay parseTime(String time) {
-  //       final parts = time.split(' ');
-  //       final hm = parts[0].split(':');
-  //       int hour = int.parse(hm[0]);
-  //       int minute = int.parse(hm[1]);
-  //       final isPM = parts[1].toLowerCase() == 'pm';
-  //
-  //       if (isPM && hour != 12) hour += 12;
-  //       if (!isPM && hour == 12) hour = 0;
-  //
-  //       return TimeOfDay(hour: hour, minute: minute);
-  //     }
-  //
-  //     final inTime = parseTime(inTimeText);
-  //     final outTime = parseTime(outTimeText);
-  //
-  //     final now = DateTime.now();
-  //     final inDateTime =
-  //         DateTime(now.year, now.month, now.day, inTime.hour, inTime.minute);
-  //     DateTime outDateTime =
-  //         DateTime(now.year, now.month, now.day, outTime.hour, outTime.minute);
-  //
-  //     if (outDateTime.isBefore(inDateTime)) {
-  //       outDateTime =
-  //           outDateTime.add(Duration(days: 1)); // Handle overnight shifts
-  //     }
-  //
-  //     final diff = outDateTime.difference(inDateTime);
-  //     final hours = diff.inHours;
-  //     final minutes = diff.inMinutes % 60;
-  //
-  //     return '${hours}h ${minutes}m';
-  //   } catch (e) {
-  //     return '0h 0m';
-  //   }
-  // }
 
   void _preFillInOutTimes() {
     if (_inTimeController.text.isNotEmpty) {
@@ -160,10 +111,29 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
         _workingHoursText =
             _calculateTimeDifference(); // Recalculate working hours
       });
-      AppLogger.info("In time picked: ${picked.format(context)}");
+      AppLogger.info("InTime picked: ${picked.format(context)}");
       AppLogger.info("InTime updated: $_inTime");
+      AppLogger.info("InTime updated controller: ${ _inTimeController.text.trim()}");
     }
   }
+
+  // _pickOutTime() async {
+  //   TimeOfDay? picked = await showTimePicker(
+  //     context: context,
+  //     initialTime: TimeOfDay.now(),
+  //   );
+  //   if (picked != null) {
+  //     setState(() {
+  //       _outTime = picked;
+  //       _outTimeController.text = picked.format(context);
+  //       // Since inTime is still not set, workingHoursText will be '0h 0m'
+  //       _workingHoursText =
+  //           _calculateTimeDifference(); // Recalculate working hours
+  //     });
+  //     AppLogger.info("Out time picked: ${picked.format(context)}");
+  //     AppLogger.info("OutTime updated: $_outTime");
+  //   }
+  // }
 
   _pickOutTime() async {
     TimeOfDay? picked = await showTimePicker(
@@ -174,9 +144,8 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
       setState(() {
         _outTime = picked;
         _outTimeController.text = picked.format(context);
-        // Since inTime is still not set, workingHoursText will be '0h 0m'
-        _workingHoursText =
-            _calculateTimeDifference(); // Recalculate working hours
+        // Recalculate working hours after picking the out time, regardless of AM/PM or 24-hour format
+        _workingHoursText = _calculateTimeDifference();
       });
       AppLogger.info("Out time picked: ${picked.format(context)}");
       AppLogger.info("OutTime updated: $_outTime");
@@ -206,6 +175,64 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
     _calculateTimeDifference(); // triggers your original logic
   }
 
+  // String _calculateTimeDifference() {
+  //   final inTimeText = _inTimeController.text.trim();
+  //   final outTimeText = _outTimeController.text.trim();
+  //
+  //   AppLogger.info("Prefilled InTime text: $inTimeText");
+  //   AppLogger.info("Selected OutTime text: $outTimeText");
+  //
+  //   if (inTimeText.isEmpty || outTimeText.isEmpty || outTimeText== "00:00") {
+  //     AppLogger.warn("InTime or OutTime is empty. Returning default '0h 0m'.");
+  //     _workingHoursController.text = '0h 0m';
+  //     return '0h 0m';
+  //   }
+  //
+  //   try {
+  //     _inTime = _parseTimeOfDay(inTimeText);
+  //     _outTime = _parseTimeOfDay(outTimeText);
+  //
+  //     if (_inTime == null || _outTime == null) {
+  //       throw Exception("Time parsing failed.");
+  //     }
+  //
+  //     AppLogger.info("Parsed InTime: ${_inTime!.hour}:${_inTime!.minute}");
+  //     AppLogger.info("Parsed OutTime: ${_outTime!.hour}:${_outTime!.minute}");
+  //   } catch (e) {
+  //     AppLogger.error("Failed to parse time: $e");
+  //     _workingHoursController.text = '0h 0m';
+  //     return '0h 0m';
+  //   }
+  //
+  //   final inMinutes = _inTime!.hour * 60 + _inTime!.minute;
+  //   final outMinutes = _outTime!.hour * 60 + _outTime!.minute;
+  //
+  //   // Ensure the time difference is always positive, handling midnight rollover
+  //   int differenceInMinutes = outMinutes >= inMinutes
+  //       ? outMinutes - inMinutes
+  //       : (24 * 60 - inMinutes) + outMinutes;
+  //
+  //   // If the difference is negative, we assume it's due to spanning midnight and correct it.
+  //   if (differenceInMinutes < 0) {
+  //     differenceInMinutes += 24 * 60;
+  //   }
+  //
+  //   final hours = differenceInMinutes ~/ 60;
+  //   final minutes = differenceInMinutes % 60;
+  //
+  //   final totalHoursDecimal = differenceInMinutes / 60.0;
+  //
+  //   final result = '${hours}h ${minutes}m';
+  //   _workingHoursController.text = result;
+  //
+  //   AppLogger.info("Time difference in minutes: $differenceInMinutes");
+  //   AppLogger.info(
+  //       "Total hours in decimal: ${totalHoursDecimal.toStringAsFixed(2)}");
+  //   AppLogger.info("Calculated time difference: $result");
+  //
+  //   return result;
+  // }
+
   String _calculateTimeDifference() {
     final inTimeText = _inTimeController.text.trim();
     final outTimeText = _outTimeController.text.trim();
@@ -213,13 +240,14 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
     AppLogger.info("Prefilled InTime text: $inTimeText");
     AppLogger.info("Selected OutTime text: $outTimeText");
 
-    if (inTimeText.isEmpty || outTimeText.isEmpty) {
+    if (inTimeText.isEmpty || outTimeText.isEmpty || outTimeText == "00:00") {
       AppLogger.warn("InTime or OutTime is empty. Returning default '0h 0m'.");
       _workingHoursController.text = '0h 0m';
       return '0h 0m';
     }
 
     try {
+      // Parse both times into TimeOfDay format, regardless of 24-hour or AM/PM format
       _inTime = _parseTimeOfDay(inTimeText);
       _outTime = _parseTimeOfDay(outTimeText);
 
@@ -257,77 +285,56 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
     _workingHoursController.text = result;
 
     AppLogger.info("Time difference in minutes: $differenceInMinutes");
-    AppLogger.info(
-        "Total hours in decimal: ${totalHoursDecimal.toStringAsFixed(2)}");
+    AppLogger.info("Total hours in decimal: ${totalHoursDecimal.toStringAsFixed(2)}");
     AppLogger.info("Calculated time difference: $result");
 
     return result;
   }
 
-  TimeOfDay? _parseTimeOfDay(String timeString) {
+  TimeOfDay _parseTimeOfDay(String timeString) {
     try {
-      final cleanedTime = timeString
-          .replaceAll(
-              RegExp(r'[\u00A0\u202F]'), ' ') // Replace NBSP and NARROW NBSP
-          .replaceAll(RegExp(r'\s+'), ' ') // Collapse spaces
-          .trim();
-
-      AppLogger.info("Sanitized time string: '$cleanedTime'");
-
-      // Try AM/PM format first (e.g., 10:00 AM or 2:40 PM)
-      try {
-        final amPmTime = DateFormat.jm().parse(cleanedTime);
-        return TimeOfDay.fromDateTime(amPmTime);
-      } catch (_) {}
-
-      // Try 24-hour format (e.g., 14:00)
-      try {
-        final time24 = DateFormat("HH:mm").parseStrict(cleanedTime);
-        return TimeOfDay.fromDateTime(time24);
-      } catch (_) {}
-
-      throw Exception("Time parsing failed.");
+      final timeFormat = DateFormat("hh:mm a"); // AM/PM format
+      DateTime parsedTime = timeFormat.parse(timeString);
+      return TimeOfDay(hour: parsedTime.hour, minute: parsedTime.minute);
     } catch (e) {
-      AppLogger.error("Time parsing failed for input '$timeString': $e");
-      return null;
+      try {
+        final timeFormat24 = DateFormat("HH:mm"); // 24-hour format
+        DateTime parsedTime24 = timeFormat24.parse(timeString);
+        return TimeOfDay(hour: parsedTime24.hour, minute: parsedTime24.minute);
+      } catch (e) {
+        AppLogger.error("Error parsing time: $e");
+        return TimeOfDay(hour: 0, minute: 0); // Default value in case of error
+      }
     }
   }
 
   // TimeOfDay? _parseTimeOfDay(String timeString) {
   //   try {
-  //     DateTime parsed;
+  //     final cleanedTime = timeString
+  //         .replaceAll(
+  //             RegExp(r'[\u00A0\u202F]'), ' ') // Replace NBSP and NARROW NBSP
+  //         .replaceAll(RegExp(r'\s+'), ' ') // Collapse spaces
+  //         .trim();
   //
-  //     // Try parsing 'h:mm a' format first (e.g. 3:09 PM)
+  //     AppLogger.info("Sanitized time string: '$cleanedTime'");
+  //
+  //     // Try AM/PM format first (e.g., 10:00 AM or 2:40 PM)
   //     try {
-  //       parsed = DateFormat.jm().parse(timeString);
-  //     } catch (_) {
-  //       // Fallback: Try parsing 'HH:mm' format (e.g. 10:33)
-  //       parsed = DateFormat('HH:mm').parse(timeString);
-  //     }
+  //       final amPmTime = DateFormat.jm().parse(cleanedTime);
+  //       return TimeOfDay.fromDateTime(amPmTime);
+  //     } catch (_) {}
   //
-  //     return TimeOfDay(hour: parsed.hour, minute: parsed.minute);
+  //     // Try 24-hour format (e.g., 14:00)
+  //     try {
+  //       final time24 = DateFormat("HH:mm").parseStrict(cleanedTime);
+  //       return TimeOfDay.fromDateTime(time24);
+  //     } catch (_) {}
+  //
+  //     throw Exception("Time parsing failed.");
   //   } catch (e) {
-  //     AppLogger.warn("Failed to parse time string: $timeString");
+  //     AppLogger.error("Time parsing failed for input '$timeString': $e");
   //     return null;
   //   }
-  // }
-
-  // /// Utility: Get ProjectItemTypeName by ID from projectItems
-  // String? _getProjectItemNameById(String? id) {
-  //   if (id == null) return null;
-  //
-  //   int? projectItemId = int.tryParse(id);
-  //   if (projectItemId == null) return null;
-  //
-  //   final item = projectItems.firstWhere(
-  //         (element) => element['ProjectItemTypeID'] == projectItemId,
-  //     orElse: () => {},
-  //   );
-  //
-  //   if (item.isNotEmpty) {
-  //     return item['ProjectItemTypeName'] as String?;
-  //   }
-  //   return null;
   // }
 
   Future<void> _fetchProjectItems() async {
@@ -392,9 +399,27 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
     });
   }
 
+  // Fetch the stored project name and ID
+  Future<void> _fetchStoredProject() async {
+    try {
+      final projectName = await SecureStorageUtil.readSecureData("ActiveProjectName");
+      setState(() {
+        _projectName = projectName;
+      });
+
+      // Log the fetched project name (for debugging)
+      if (_projectName != null) {
+        AppLogger.info("Fetched Active Project Labor Attedance Add Pages: $_projectName");
+      }
+    } catch (e) {
+      AppLogger.error("Error fetching project from secure storage: $e");
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    _fetchStoredProject();
     // Fetch project items asynchronously
     _fetchProjectItems();
 
@@ -402,7 +427,11 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
     AppLogger.info("📍 Longitude: ${widget.longitude}");
     AppLogger.info("📍 Address: ${widget.address}");
 
-    // If you have the attendance data, use its values; else, handle null cases.
+    _dateController = TextEditingController(
+      text: widget.selectedDate, // Directly using passed value
+    );
+
+    // If you have the attendance_only data, use its values; else, handle null cases.
     if (widget.attendance != null) {
       // Log the image URLs.
       String inImageUrl = widget.attendance?.inPicture ?? "No In Picture URL";
@@ -412,50 +441,11 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
       AppLogger.info('OUT_PICTURE URL: $outImageUrl');
     }
 
-    // _workingHoursController = TextEditingController();
-    //
-    // _inTimeController = TextEditingController(
-    //   text:
-    //       widget.mode == FormMode.edit && widget.attendance?.inTime != null
-    //           ? DateFormat('HH:mm').format(widget.attendance!.inTime!)
-    //           : '',
-    // );
-    //
-    // _outTimeController = TextEditingController(
-    //   text:
-    //       widget.mode == FormMode.edit && widget.attendance?.outTime != null
-    //           ? DateFormat('HH:mm').format(widget.attendance!.outTime!)
-    //           : '',
-    // );
-    //
-    // _overtimeController = TextEditingController(
-    //   text:
-    //       widget.mode == FormMode.edit
-    //           ? widget.attendance?.overTime?.toString() ?? '0'
-    //           : '0',
-    // );
-    //
-    // _overtimeRateController = TextEditingController(
-    //   text:
-    //       widget.mode == FormMode.edit
-    //           ? widget.attendance?.overtimeRate?.toString() ?? ''
-    //           : '',
-    // );
-    //
-    // _remarksController = TextEditingController(
-    //   text: widget.mode == FormMode.edit ? widget.attendance?.remark ?? '' : '',
-    // );
-    //
-    // _activityController = TextEditingController();
-
     AppLogger.info("Init mode: ${widget.mode}");
     AppLogger.info("Attendance object: ${widget.attendance}");
+    AppLogger.info("Attendance contractorId: ${widget.attendance!.contractorId}");
+    AppLogger.info("Attendance contractorName: ${widget.attendance!.contractorName}");
 
-    // if (widget.mode == FormMode.edit &&
-    //     widget.attendance?.projectItemTypeId != null) {
-    //   projectItem = widget.attendance!.projectItemTypeId.toString();
-    //   AppLogger.info("projectItem prefilled: $projectItem");
-    // }
 
     _workingHoursController = TextEditingController(
       text: widget.mode == FormMode.edit && widget.attendance?.totalHrs != null
@@ -491,55 +481,15 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
     );
     AppLogger.info("OT Rate prefilled: ${_overtimeRateController.text}");
 
-    // _inTimeController = TextEditingController(
-    //   text: widget.mode == FormMode.edit && widget.attendance?.inTime != null
-    //       ? DateFormat('HH:mm').format(widget.attendance!.inTime!)
-    //       : '',
-    // );
 
     _inTimeController = TextEditingController();
     AppLogger.info("In Time prefilled: ${_inTimeController.text}");
-
-    // _outTimeController = TextEditingController(
-    //   text: widget.mode == FormMode.edit && widget.attendance?.outTime != null
-    //       ? DateFormat('HH:mm').format(widget.attendance!.outTime!)
-    //       : '',
-    // );
 
     _outTimeController = TextEditingController();
     AppLogger.info("Out Time prefilled: ${_outTimeController.text}");
 
     _preFillInOutTimes();
   }
-
-  // @override
-  // void didChangeDependencies() {
-  //   super.didChangeDependencies();
-  //
-  //   // Ensure the attendance data is available before attempting to prefill
-  //
-  //   _activityController.text = widget.attendance?.activityName ?? '';
-  //   _remarksController.text = widget.attendance?.remark ?? '';
-  //   _overtimeController.text = widget.attendance?.overTime?.toString() ?? '0';
-  //   _overtimeRateController.text =
-  //       widget.attendance?.overtimeRate?.toString() ?? '';
-  //   _inTimeController.text = widget.attendance?.inTime != null
-  //       ? DateFormat('HH:mm').format(widget.attendance!.inTime!)
-  //       : '';
-  //   _outTimeController.text = widget.attendance?.outTime != null
-  //       ? DateFormat('HH:mm').format(widget.attendance!.outTime!)
-  //       : '';
-  //
-  //   // Log prefilled data
-  //   AppLogger.info("Activity prefilled: ${_activityController.text}");
-  //   AppLogger.info("Remarks prefilled: ${_remarksController.text}");
-  //   AppLogger.info("OT Hours prefilled: ${_overtimeController.text}");
-  //   AppLogger.info("OT Rate prefilled: ${_overtimeRateController.text}");
-  //   AppLogger.info("In Time prefilled: ${_inTimeController.text}");
-  //   AppLogger.info("Out Time prefilled: ${_outTimeController.text}");
-  //
-  //   _isFirstLoad = false; // Set flag to false to prevent future overwriting
-  // }
 
   @override
   void didChangeDependencies() {
@@ -619,6 +569,7 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
 
   @override
   void dispose() {
+    _dateController.dispose();
     _inTimeController.dispose();
     _outTimeController.dispose();
     _overtimeController.dispose();
@@ -642,7 +593,25 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text(title),
+        title: Column(
+          children: [
+            Text(title,
+              style: GoogleFonts.nunitoSans(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 18,
+                  color: AppColors.primaryBlackFont),
+
+            ),
+            Text(
+              _projectName ?? "",
+              style: GoogleFonts.nunitoSans(
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+                color: AppColors.primaryBlackFont,
+              ),
+            ),
+          ],
+        ),
         backgroundColor: Colors.white,
         automaticallyImplyLeading: false,
         leading: IconButton(
@@ -657,6 +626,7 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
           key: _formKey,
           child: Column(
             children: [
+
               _buildHeader(
                 widget.attendance?.labourName ?? 'Labour Name',
                 widget.attendance?.labourCategory ?? 'Labour Category',
@@ -675,41 +645,6 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
                 onSave: (value) {},
               ),
               SizedBox(height: 20),
-              // CustomDropdownPage(
-              //   label: "Select Project Item Type", // Label for the dropdown
-              //   onChanged: (String? selectedName){
-              //     setState(() {
-              //       projectItem = selectedName;
-              //
-              //       // Optionally find selected ID from static projectItems if needed
-              //       final matchedItem = projectItems.firstWhere(
-              //             (e) => e['ProjectItemTypeName'] == selectedName,
-              //         orElse: () => {},
-              //       );
-              //       projectItemId = matchedItem['ProjectItemTypeID'];
-              //     });
-              //
-              //     AppLogger.info("Selected ProjectItem Name = $projectItem, ID = $projectItemId");
-              //   },
-              //   initialValue: projectItem, // Optionally, pass the initial value
-              // ),
-
-              // Text(_selectedProjectItemTypeName ?? "-- Select Project Item --"),
-              // Text(projectItem ?? "-- Select Project Item --"),
-
-              // ReusableDropdown(
-              //   label: "Project Item",
-              //   initialValue: initialProjectItemValue,
-              //  // initialValue: projectItem ?? _selectedProjectItemTypeName,
-              //   onChanged: (name, id) {
-              //     AppLogger.debug("📍 Before update - Value in parent: $_selectedProjectItemTypeName, ID: $_selectedProjectItemTypeId");
-              //     setState(() {
-              //       _selectedProjectItemTypeName = name;
-              //       _selectedProjectItemTypeId = id;
-              //     });
-              //     AppLogger.debug("📍 After update - Value in parent: $_selectedProjectItemTypeName, ID: $_selectedProjectItemTypeId");
-              //   },
-              // ),
 
               CustomFormWidgets.buildDropdown(
                 context: context,
@@ -763,310 +698,15 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
                   isImageUploaded = true;
                 });
               }),
+
+
               SizedBox(height: 20),
 
-              // Image.network(
-              //     "http://192.168.1.28:1011/Files/ProfilePic/nopic.png"),
-              // Image.network(
-              //     "https://th.bing.com/th/id/OIP.U1DF6lM_O0pj_gN3dBpsCwHaFM?rs=1&pid=ImgDetMain"),
-
-              // Image preview for IN_PICTURE URL
-              // widget.attendance?.inPicture != null
-              //     ? Image.network(widget.attendance!.inPicture!)
-              //     : Container(),
-
-              if (widget.attendance?.inPicture != null &&
-                  widget.attendance!.inPicture!.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Display the file path
-                      Text(
-                        "📁 inPicture File path: ${widget.attendance?.inPicture}",
-                        style:
-                            TextStyle(fontSize: 14, color: Colors.green[800]),
-                      ),
-
-                      // Display the image if valid URL
-                      widget.attendance!.inPicture!.startsWith('http')
-                          ? Image.network(
-                              widget.attendance!.inPicture!,
-                              errorBuilder: (context, error, stackTrace) {
-                                return const Text('Failed to load image');
-                              },
-                            )
-                          : const Text('NO Image URL'),
-                    ],
-                  ),
-                ),
-
-              // Image preview for OUT_PICTURE URL
-              // widget.attendance?.outPicture != null
-              //     ? Image.network("http://192.168.1.17:1011/Files/ProfilePic/attendance.png")
-              //     : Container(),
-
-              if (widget.attendance?.outPicture != null &&
-                  widget.attendance!.outPicture!.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Display the file path
-                      Text(
-                        "📁 inPicture File path: ${widget.attendance?.outPicture}",
-                        style:
-                        TextStyle(fontSize: 14, color: Colors.green[800]),
-                      ),
-
-                      // Display the image if valid URL
-                      widget.attendance!.outPicture!.startsWith('http')
-                          ? Image.network(
-                        widget.attendance!.outPicture!,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Text('Failed to load image');
-                        },
-                      )
-                          : const Text('NO Image URL'),
-                    ],
-                  ),
-                ),
-
-              // if (isImageUploaded != null)
-              //   Padding(
-              //     padding: EdgeInsets.all(1.0),
-              //     child: Column(
-              //       crossAxisAlignment: CrossAxisAlignment.start,
-              //       children: [
-              //         Text(
-              //           "📁 File path: $_capturedFilePath",
-              //           style: TextStyle(fontSize: 14, color: Colors.green[800]),
-              //         ),
-              //         const SizedBox(height: 12),
-              //         Container(
-              //           height: 500,
-              //           width: double.infinity,
-              //           padding: EdgeInsets.all(1.0),
-              //           decoration: BoxDecoration(
-              //             color: Colors.white,
-              //             borderRadius: BorderRadius.circular(8),
-              //           ),
-              //           child: ClipRRect(
-              //             borderRadius: BorderRadius.circular(8),
-              //             child: FutureBuilder<File>(
-              //               future: _getImageFile(),
-              //               builder: (context, snapshot) {
-              //                 if (snapshot.connectionState ==
-              //                     ConnectionState.waiting) {
-              //                   return Center(child: CircularProgressIndicator());
-              //                 } else if (snapshot.hasError) {
-              //                   return Center(
-              //                     child: Text(
-              //                       'Error loading image',
-              //                       style: TextStyle(color: Colors.red),
-              //                     ),
-              //                   );
-              //                 } else if (snapshot.hasData && snapshot.data != null) {
-              //                   return Image.file(
-              //                     snapshot.data!,
-              //                     width: double.infinity,
-              //                     fit: BoxFit.cover,
-              //                   );
-              //                 } else {
-              //                   return Center(
-              //                     child: Image.asset(
-              //                       'assets/images/defult_constro_img.png',
-              //                       width: double.infinity,
-              //                       fit: BoxFit.cover,
-              //                     ),
-              //                   );
-              //                 }
-              //               },
-              //             ),
-              //           ),
-              //         ),
-              //       ],
-              //     ),
-              //   ),
 
               Row(
                 children: [
                   Expanded(
                     child: ElevatedButton(
-                      // onPressed: () async {
-                      //   if (_formKey.currentState!.validate()) {
-                      //
-                      //     // Access the inTime and outTime from the Riverpod provider
-                      //     final timeState = ref.read(timeProvider);
-                      //     final inTime = timeState.inTime;
-                      //     final outTime = timeState.outTime;
-                      //
-                      //
-                      //     // Update the controllers (for example if saving them as strings)
-                      //     if (inTime != null) {
-                      //       _inTimeController.text = inTime.format(context);
-                      //     }
-                      //     if (outTime != null) {
-                      //       _outTimeController.text = outTime.format(context);
-                      //     }
-                      //
-                      //     // Declare latitude, longitude, and currentLocation before usage
-                      //     final latitude = widget.latitude;  // Ensure it's assigned correctly
-                      //     final longitude = widget.longitude; // Ensure it's assigned correctly
-                      //     final currentLocation = widget.address; // Ensure it's assigned correctly
-                      //
-                      //
-                      //     // Log the form data for debugging
-                      //     AppLogger.info('Attendance saved successfully');
-                      //     AppLogger.info("🆔 Labour ID       : ${widget.labourID}");
-                      //     AppLogger.info("👷 Labour Name     : ${widget.attendance?.labourName ?? 'N/A'}");
-                      //     AppLogger.info("🏢 Contractor Name : ${widget.attendance?.contractorName ?? 'N/A'}");
-                      //     AppLogger.info("📂 Category        : ${widget.attendance?.labourCategory ?? 'N/A'}");
-                      //     AppLogger.info("🔧 Activity        : ${_activityController.text}");
-                      //     AppLogger.info("📝 Remarks         : ${_remarksController.text}");
-                      //     AppLogger.info("🕒 In Time         : ${_inTimeController.text}");
-                      //     AppLogger.info("🕔 Out Time        : ${_outTimeController.text}");
-                      //     AppLogger.info("⏱️ Overtime        : ${_overtimeController.text}");
-                      //     AppLogger.info("💰 OT Rate         : ${_overtimeRateController.text}");
-                      //     AppLogger.info("📍 Latitude        : $latitude");
-                      //     AppLogger.info("📍 Longitude       : $longitude");
-                      //     AppLogger.info("📍 Address         : $currentLocation");
-                      //
-                      //
-                      //
-                      //
-                      //     final totalHours = (widget.attendance?.overTime ?? 0).toDouble();
-                      //     final overTime = (widget.attendance?.overTime ?? 0).toDouble();
-                      //     final imagePath = _capturedFilePath;
-                      //
-                      //     if (widget.mode == FormMode.edit && widget.attendance != null) {
-                      //
-                      //       // 🔍 Log existing data before editing
-                      //       AppLogger.info("✏️ Editing Existing Attendance Record");
-                      //       AppLogger.info("🆔 Labour ID       : ${widget.labourID}");
-                      //       AppLogger.info("👷 Labour Name     : ${widget.attendance!.labourName}");
-                      //       AppLogger.info("🏢 Contractor Name : ${widget.attendance!.contractorName}");
-                      //       AppLogger.info("📂 Category        : ${widget.attendance!.labourCategory}");
-                      //       AppLogger.info("🔧 Activity        : ${_activityController.text}");
-                      //       AppLogger.info("🕒 In Time         : ${_inTimeController.text}");
-                      //       AppLogger.info("🕔 Out Time        : ${_outTimeController.text}");
-                      //       AppLogger.info("⏱️ Overtime        : ${_overtimeController.text}");
-                      //       AppLogger.info("💰 OT Rate         : ${_overtimeRateController.text}");
-                      //       AppLogger.info("📍 Latitude        : $latitude");
-                      //       AppLogger.info("📍 Longitude       : $longitude");
-                      //       AppLogger.info("📍 Address         : $currentLocation");
-                      //       AppLogger.info("📸 In Picture URL  : ${widget.attendance!.inPicture?.toString() ?? 'N/A'}");
-                      //       AppLogger.info("📅 Attendance Date : ${widget.attendance!.date}");
-                      //
-                      //       // Prepare the imagePath, handle null or empty path
-                      //       String? imagePath = _capturedFilePath;
-                      //       if (imagePath == null || imagePath.isEmpty) {
-                      //         AppLogger.warn("⚠️ No image captured for attendance. Using default image or null.");
-                      //         imagePath = 'default_image_path'; // Fallback value if no image is captured
-                      //       }
-                      //
-                      //
-                      //     // Call the API to Add the existing data (edit mode)
-                      //     await _editdata(
-                      //     laborId:widget.labourID,
-                      //     name: widget.attendance!.labourName,
-                      //     company: widget.attendance!.contractorName,
-                      //     category: widget.attendance!.labourCategory,
-                      //     activityName: _activityController.text,
-                      //     otHours: _overtimeController.text,
-                      //     otRate: _overtimeRateController.text,
-                      //     inTime: _inTimeController.text,
-                      //     outTime: _outTimeController.text,
-                      //     totalHours: totalHours,  // You may need to calculate or fetch this
-                      //     overTime: overTime,   // Adjust accordingly
-                      //       imagePath: imagePath ?? '', // Use fallback or null
-                      //       // imagePath: _capturedFilePath ?? '',   // If there's a captured image, provide its path
-                      //     fileName: 'attendance.png', // Set appropriate file name
-                      //     latitude: latitude,  // Adjust with actual value
-                      //     longitude: longitude,  // Adjust with actual value
-                      //     currentLocation: currentLocation, // Adjust with actual location
-                      //     );
-                      //
-                      //       // Log image file path if captured
-                      //       if (imagePath != null && imagePath.isNotEmpty) {
-                      //         AppLogger.info('Captured Image File Path: $imagePath');
-                      //       }
-                      //
-                      //     // ✅ Log image file path (if captured)
-                      //       if (_capturedFilePath == null || _capturedFilePath!.isEmpty) {
-                      //         AppLogger.warn("⚠️ No image captured for attendance");
-                      //       }
-                      //
-                      //
-                      //       // ✅ Reset the provider state
-                      //     ref.read(timeProvider.notifier).reset();
-                      //
-                      //     // ✅ Optionally clear time controllers too
-                      //     _inTimeController.clear();
-                      //     _outTimeController.clear();
-                      //
-                      //     } else {
-                      //       AppLogger.info("🆕 SimpleAttendanceForm in ADD MODE FRO API CALL");
-                      //
-                      //       // // Prepare the necessary data for saving
-                      //       // final totalHours = (widget.attendance!.overTime ?? 0).toDouble();
-                      //       // final overTime = (widget.attendance!.overTime ?? 0).toDouble();
-                      //
-                      //       // Check latitude, longitude, and currentLocation for null, fallback if needed
-                      //       final latitude = widget.latitude;
-                      //       final longitude = widget.longitude;
-                      //       final currentLocation = widget.address;
-                      //
-                      //
-                      //
-                      //       // Call the API to Add the existing data (edit mode)
-                      //       await _saveData(
-                      //         laborId:widget.labourID,
-                      //       name: widget.attendance!.labourName,
-                      //       company: widget.attendance!.contractorName,
-                      //       category: widget.attendance!.labourCategory,
-                      //       activityName: _activityController.text,
-                      //       remark: _remarksController.text,
-                      //       otHours: _overtimeController.text,
-                      //       otRate: _overtimeRateController.text,
-                      //       inTime: _inTimeController.text,
-                      //       outTime: _outTimeController.text,
-                      //         totalHours: totalHours,  // You may need to calculate or fetch this
-                      //         overTime: overTime,   // Adjust accordingly
-                      //         imagePath: _capturedFilePath ?? '',   // If there's a captured image, provide its path
-                      //       fileName: 'attendance.png', // Set appropriate file name
-                      //       latitude: latitude,  // Adjust with actual value
-                      //       longitude: longitude,  // Adjust with actual value
-                      //       currentLocation: currentLocation, // Adjust with actual location
-                      //       );
-                      //     }
-                      //
-                      //     // ✅ Log image file path (if captured)
-                      //     if (_capturedFilePath != null) {
-                      //       AppLogger.info('Captured Image File Path: $_capturedFilePath');
-                      //     }
-                      //
-                      //     // ✅ Reset the provider state
-                      //     ref.read(timeProvider.notifier).reset();
-                      //
-                      //     // ✅ Optionally clear time controllers too
-                      //     _inTimeController.clear();
-                      //     _outTimeController.clear();
-                      //
-                      //     // Navigate back after saving
-                      //     Navigator.pop(context);
-                      //   } else {
-                      //     // Show error if form is invalid
-                      //     CustomSnackbar.show(
-                      //       isError: true,
-                      //       context,
-                      //       message: "Please fill all required fields.",
-                      //     );
-                      //   }
-                      // },
-
                       onPressed: () async {
                         final timeState = ref.read(timeProvider);
                         // final inTime = timeState.inTime;
@@ -1113,6 +753,14 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
                         final labourName = widget.attendance?.labourName ?? '';
                         final contractorName =
                             widget.attendance?.contractorName ?? '';
+
+                        final contractorID=
+                            widget.attendance?.contractorId ?? '';
+
+                        final contractorId = widget.attendance?.contractorId is int
+                            ? widget.attendance?.contractorId as int
+                            : int.tryParse(widget.attendance?.contractorId.toString() ?? '0') ?? 0;
+
                         final labourCategory =
                             widget.attendance?.labourCategory ?? '';
 
@@ -1126,6 +774,9 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
                             "👷 Labour Name     : ${widget.attendance?.labourName ?? 'N/A'}");
                         AppLogger.info(
                             "🏢 Contractor Name : ${widget.attendance?.contractorName ?? 'N/A'}");
+                        AppLogger.info("🏢 Contractor ID   :${widget.attendance?.contractorId ?? 'N/A'}");
+                        AppLogger.info("🏢 contractorID   :${contractorID}");
+                        AppLogger.info("🏢 contractorId   :${contractorId}");
                         AppLogger.info(
                             "📂 Category        : ${widget.attendance?.labourCategory ?? 'N/A'}");
                         AppLogger.info(
@@ -1147,8 +798,9 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
                         AppLogger.info("📍 Address         : $currentLocation");
                         AppLogger.info(
                             "📸 In Picture URL  : ${widget.attendance!.inPicture?.toString() ?? 'N/A'}");
-                        AppLogger.info(
-                            "📅 Attendance Date : ${widget.attendance!.date}");
+                        AppLogger.info("📅 Attendance Date :=> ${widget.attendance?.date ?? 'N/A'}");
+                        AppLogger.info("📅 Selected Date :=> ${widget.attendance?.date ?? DateTime.now()}");
+
 
                         if (widget.mode == FormMode.edit &&
                             widget.attendance != null) {
@@ -1168,6 +820,7 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
                           AppLogger.info(
                               "📤 Calling _editdata API with the following details:");
                           AppLogger.info("🆔 Labour ID       : $labourId");
+                          AppLogger.info("🆔 contractor Id       : $contractorId");
                           AppLogger.info("👷 Labour Name     : $labourName");
                           AppLogger.info(
                               "🏢 Contractor Name : $contractorName");
@@ -1192,11 +845,17 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
                           AppLogger.info(
                               "📍 Address         : $currentLocation");
 
+                          final DateTime parsedDate = DateFormat("yyyy-MM-dd").parse(_dateController.text);
+                          final String formattedDate = parsedDate.toIso8601String(); // gives '2025-05-01T00:00:00.000'
+                          final String finalDate = formattedDate.split('.').first;   // removes milliseconds
+
+
                           await _editdata(
-                            laborattedanceId: labourAttendanceId ?? 0,
+                            laborAttendanceId: labourAttendanceId ?? 0,
                             laborId: labourId,
                             name: labourName,
                             company: contractorName,
+                            contractorId: contractorId,
                             category: labourCategory,
                             projectItemTypeId: _selectedProjectItemTypeId,
                             activityName: _activityController.text,
@@ -1208,11 +867,12 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
                             overTime: overTime,
                             // imagePath: imagePath ?? '', // Use fallback or null
                             imagePath: _capturedFilePath ?? '',
-                            fileName: 'attendance.png',
+                            fileName: 'attendance_only.png',
                             latitude: latitude,
                             longitude: longitude,
                             currentLocation: currentLocation,
                             remark: _remarksController.text,
+                            date: widget.attendance?.date ?? DateTime.now(), // Pass date to the API
                           );
 
                           // Log image file path if captured
@@ -1224,7 +884,7 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
                           if (_capturedFilePath == null ||
                               _capturedFilePath!.isEmpty) {
                             AppLogger.warn(
-                                "⚠️ No image captured for attendance");
+                                "⚠️ No image captured for attendance_only");
                           }
 
                           // ✅ Reset the provider state
@@ -1235,7 +895,17 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
                           _outTimeController.clear();
 
                           // Navigate back after saving
-                          Navigator.pop(context);
+                          //Navigator.pop(context, true);
+                          //Navigator.pop(context, true);
+
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(builder: (context) => LabourAttendancePage()),
+                                (Route<dynamic> route) => false,
+                          );
+
+
+
                           setState(() {});
                         } else {
                           AppLogger.info(
@@ -1250,6 +920,7 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
                           AppLogger.info(
                               "📤 Calling _saveData API with the following details:");
                           AppLogger.info("🆔 Labour ID       : $labourId");
+                          AppLogger.info("🆔 contractor Id Save Time: $contractorId");
                           AppLogger.info("👷 Labour Name     : $labourName");
                           AppLogger.info(
                               "🏢 Contractor Name : $contractorName");
@@ -1261,6 +932,8 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
                               "📝 Remarks         : ${_remarksController.text}");
                           AppLogger.info(
                               "🕒 In Time         : ${_inTimeController.text}");
+                          AppLogger.info(
+                              "🕒 Selcated Date    : ${_dateController.text}");
                           AppLogger.info(
                               "🕔 Out Time        : ${_outTimeController.text}");
                           AppLogger.info(
@@ -1275,15 +948,21 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
                           String? imagePath = _capturedFilePath;
                           String fileName =
                               (imagePath != null && imagePath.isNotEmpty)
-                                  ? 'attendance.png'
+                                  ? 'attendance_only.png'
                                   : '';
                           imagePath ??= '';
+
+                          final DateTime parsedDate = DateFormat("yyyy-MM-dd").parse(_dateController.text);
+                          final String formattedDate = parsedDate.toIso8601String(); // gives '2025-05-01T00:00:00.000'
+                          final String finalDate = formattedDate.split('.').first;   // removes milliseconds
+
 
                           await _saveData(
                             laborId: labourId,
                             name: labourName,
                             company: contractorName,
                             category: labourCategory,
+                            contractorId: contractorId,
                             projectItemTypeId: _selectedProjectItemTypeId,
                             activityName: _activityController.text,
                             remark: _remarksController.text,
@@ -1298,6 +977,8 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
                             latitude: latitude,
                             longitude: longitude,
                             currentLocation: currentLocation,
+                            date:finalDate,
+                           // date: _inTimeController.text,
                           );
                         }
 
@@ -1313,266 +994,18 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
                         setState(() {});
 
                         // Navigate back after saving
-                        //Navigator.pop(context);
-                      },
+                        //Navigator.pop(context, true); // Pop and optionally return a value
+                        //Navigator.pop(context, true); // Pop and optionally return a value
 
-                      // onPressed: () async {
-                      //   // Check for In Time when adding a new attendance record
-                      //   if (widget.mode == FormMode.add && _inTimeController.text.isEmpty) {
-                      //     CustomSnackbar.show(
-                      //       isError: true,
-                      //       context,
-                      //       message: "Please fill In Time. It is required.",
-                      //     );
-                      //     return;
-                      //   }
-                      //
-                      //   // Check for Out Time when editing an attendance record
-                      //   if (widget.mode == FormMode.edit && _outTimeController.text.isEmpty) {
-                      //     CustomSnackbar.show(
-                      //       isError: true,
-                      //       context,
-                      //       message: "Please fill Out Time. It is required for editing.",
-                      //     );
-                      //     return;
-                      //   }
-                      //
-                      //   final latitude = widget.latitude;
-                      //   final longitude = widget.longitude;
-                      //   final currentLocation = widget.address;
-                      //
-                      //   double _parseWorkingHoursToDecimal(
-                      //       String workingHoursText) {
-                      //     try {
-                      //       final regex = RegExp(r'(\d+)h\s+(\d+)m');
-                      //       final match = regex.firstMatch(workingHoursText);
-                      //
-                      //       if (match != null) {
-                      //         final hours = int.parse(match.group(1)!);
-                      //         final minutes = int.parse(match.group(2)!);
-                      //         return hours + (minutes / 60.0);
-                      //       } else {
-                      //         AppLogger.warn(
-                      //             "Invalid working hours format: $workingHoursText");
-                      //         return 0.0;
-                      //       }
-                      //     } catch (e) {
-                      //       AppLogger.error(
-                      //           "Failed to parse working hours: $e");
-                      //       return 0.0;
-                      //     }
-                      //   }
-                      //
-                      //   final totalHours = (widget.attendance?.overTime ??
-                      //       _parseWorkingHoursToDecimal(
-                      //           _workingHoursController.text));
-                      //
-                      //   // final totalHours =
-                      //   //     (widget.attendance?.overTime ?? 0).toDouble();
-                      //   final overTime =
-                      //       (widget.attendance?.overTime ?? 0).toDouble();
-                      //
-                      //   final labourAttendanceId =
-                      //       widget.attendance?.labourAttendanceId;
-                      //   final labourId = widget.labourID;
-                      //   final labourName = widget.attendance?.labourName ?? '';
-                      //   final contractorName =
-                      //       widget.attendance?.contractorName ?? '';
-                      //   final labourCategory =
-                      //       widget.attendance?.labourCategory ?? '';
-                      //
-                      //   // Log the form data for debugging
-                      //   AppLogger.info('Attendance saved successfully');
-                      //   AppLogger.info(
-                      //       "🆔 Labour ID       : ${widget.labourID}");
-                      //   AppLogger.info(
-                      //       "Labour Attedance ID     : ${widget.attendance?.labourAttendanceId ?? 'N/A'}");
-                      //   AppLogger.info(
-                      //       "👷 Labour Name     : ${widget.attendance?.labourName ?? 'N/A'}");
-                      //   AppLogger.info(
-                      //       "🏢 Contractor Name : ${widget.attendance?.contractorName ?? 'N/A'}");
-                      //   AppLogger.info(
-                      //       "📂 Category        : ${widget.attendance?.labourCategory ?? 'N/A'}");
-                      //   AppLogger.info(
-                      //       "🔧 Activity        : ${_activityController.text}");
-                      //   AppLogger.info(
-                      //       "📝 Remarks         : ${_remarksController.text}");
-                      //   AppLogger.info(
-                      //       "🕒 In Time         : ${_inTimeController.text}");
-                      //   AppLogger.info(
-                      //       "🕔 Out Time        : ${_outTimeController.text}");
-                      //   AppLogger.info(
-                      //       "🕔 Total hrs Time        : ${_workingHoursController.text}");
-                      //   AppLogger.info(
-                      //       "⏱️ Overtime        : ${_overtimeController.text}");
-                      //   AppLogger.info(
-                      //       "💰 OT Rate         : ${_overtimeRateController.text}");
-                      //   AppLogger.info("📍 Latitude        : $latitude");
-                      //   AppLogger.info("📍 Longitude       : $longitude");
-                      //   AppLogger.info("📍 Address         : $currentLocation");
-                      //   AppLogger.info(
-                      //       "📸 In Picture URL  : ${widget.attendance!.inPicture?.toString() ?? 'N/A'}");
-                      //   AppLogger.info(
-                      //       "📅 Attendance Date : ${widget.attendance!.date}");
-                      //
-                      //   if (widget.mode == FormMode.edit &&
-                      //       widget.attendance != null) {
-                      //     AppLogger.info("Init mode: ${widget.mode}");
-                      //     // 🔍 Log existing data before editing
-                      //     AppLogger.info(
-                      //         "✏️ Editing Existing Attendance Record");
-                      //
-                      //     // Prepare the imagePath, handle null or empty path
-                      //     // String? imagePath = _capturedFilePath;
-                      //     // if (imagePath == null || imagePath.isEmpty) {
-                      //     //   AppLogger.warn("⚠️ No image captured for attendance. Using default image or null.");
-                      //     //   imagePath = 'default_image_path'; // Fallback value if no image is captured
-                      //     // }
-                      //
-                      //     // Log full data going into the API
-                      //     AppLogger.info(
-                      //         "📤 Calling _editdata API with the following details:");
-                      //     AppLogger.info("🆔 Labour ID       : $labourId");
-                      //     AppLogger.info("👷 Labour Name     : $labourName");
-                      //     AppLogger.info(
-                      //         "🏢 Contractor Name : $contractorName");
-                      //     AppLogger.info(
-                      //         "📂 Category        : $labourCategory");
-                      //     AppLogger.info(
-                      //         "🔧 Activity        : ${_activityController.text}");
-                      //     AppLogger.info(
-                      //         "📝 Remarks         : ${_remarksController.text}");
-                      //     AppLogger.info(
-                      //         "🕒 In Time         : ${_inTimeController.text}");
-                      //     AppLogger.info(
-                      //         "🕔 Out Time        : ${_outTimeController.text}");
-                      //     AppLogger.info(
-                      //         "🕐 Working Hours   : ${_workingHoursController.text}");
-                      //     AppLogger.info(
-                      //         "⏱️ Overtime        : ${_overtimeController.text}");
-                      //     AppLogger.info(
-                      //         "💰 OT Rate         : ${_overtimeRateController.text}");
-                      //     AppLogger.info("📍 Latitude        : $latitude");
-                      //     AppLogger.info("📍 Longitude       : $longitude");
-                      //     AppLogger.info(
-                      //         "📍 Address         : $currentLocation");
-                      //
-                      //     await _editdata(
-                      //       laborattedanceId: labourAttendanceId ?? 0,
-                      //       laborId: labourId,
-                      //       name: labourName,
-                      //       company: contractorName,
-                      //       category: labourCategory,
-                      //       projectItemTypeId: _selectedProjectItemTypeId,
-                      //       activityName: _activityController.text,
-                      //       otHours: _overtimeController.text,
-                      //       otRate: _overtimeRateController.text,
-                      //       inTime: _inTimeController.text,
-                      //       outTime: _outTimeController.text,
-                      //       totalHours: totalHours.toDouble(),
-                      //       overTime: overTime,
-                      //       // imagePath: imagePath ?? '', // Use fallback or null
-                      //       imagePath: _capturedFilePath ?? '',
-                      //       fileName: 'attendance.png',
-                      //       latitude: latitude,
-                      //       longitude: longitude,
-                      //       currentLocation: currentLocation,
-                      //       remark: _remarksController.text,
-                      //     );
-                      //
-                      //     // Log image file path if captured
-                      //     // if (imagePath != null && imagePath.isNotEmpty) {
-                      //     //   AppLogger.info('Captured Image File Path: $imagePath');
-                      //     // }
-                      //
-                      //     // ✅ Log image file path (if captured)
-                      //     if (_capturedFilePath == null ||
-                      //         _capturedFilePath!.isEmpty) {
-                      //       AppLogger.warn(
-                      //           "⚠️ No image captured for attendance");
-                      //     }
-                      //
-                      //     // ✅ Reset the provider state
-                      //     ref.read(timeProvider.notifier).reset();
-                      //
-                      //     // ✅ Optionally clear time controllers too
-                      //     _inTimeController.clear();
-                      //     _outTimeController.clear();
-                      //   } else {
-                      //     AppLogger.info(
-                      //         "🆕 SimpleAttendanceForm in ADD MODE FRO API CALL");
-                      //
-                      //     // Check latitude, longitude, and currentLocation for null, fallback if needed
-                      //     final latitude = widget.latitude;
-                      //     final longitude = widget.longitude;
-                      //     final currentLocation = widget.address;
-                      //
-                      //     // Log full data going into the API
-                      //     AppLogger.info(
-                      //         "📤 Calling _saveData API with the following details:");
-                      //     AppLogger.info("🆔 Labour ID       : $labourId");
-                      //     AppLogger.info("👷 Labour Name     : $labourName");
-                      //     AppLogger.info(
-                      //         "🏢 Contractor Name : $contractorName");
-                      //     AppLogger.info(
-                      //         "📂 Category        : $labourCategory");
-                      //     AppLogger.info(
-                      //         "🔧 Activity        : ${_activityController.text}");
-                      //     AppLogger.info(
-                      //         "📝 Remarks         : ${_remarksController.text}");
-                      //     AppLogger.info(
-                      //         "🕒 In Time         : ${_inTimeController.text}");
-                      //     AppLogger.info(
-                      //         "🕔 Out Time        : ${_outTimeController.text}");
-                      //     AppLogger.info(
-                      //         "⏱️ Overtime        : ${_overtimeController.text}");
-                      //     AppLogger.info(
-                      //         "💰 OT Rate         : ${_overtimeRateController.text}");
-                      //     AppLogger.info("📍 Latitude        : $latitude");
-                      //     AppLogger.info("📍 Longitude       : $longitude");
-                      //     AppLogger.info(
-                      //         "📍 Address         : $currentLocation");
-                      //
-                      //     String? imagePath = _capturedFilePath;
-                      //     String fileName =
-                      //         (imagePath != null && imagePath.isNotEmpty)
-                      //             ? 'attendance.png'
-                      //             : '';
-                      //     imagePath ??= '';
-                      //
-                      //     await _saveData(
-                      //       laborId: labourId,
-                      //       name: labourName,
-                      //       company: contractorName,
-                      //       category: labourCategory,
-                      //       projectItemTypeId: _selectedProjectItemTypeId,
-                      //       activityName: _activityController.text,
-                      //       remark: _remarksController.text,
-                      //       otHours: _overtimeController.text,
-                      //       otRate: _overtimeRateController.text,
-                      //       inTime: _inTimeController.text,
-                      //       outTime: _outTimeController.text,
-                      //       totalHours: totalHours.toDouble(),
-                      //       overTime: overTime,
-                      //       imagePath: imagePath,
-                      //       fileName: fileName,
-                      //       latitude: latitude,
-                      //       longitude: longitude,
-                      //       currentLocation: currentLocation,
-                      //     );
-                      //   }
-                      //
-                      //   // Reset and finish
-                      //   ref.read(timeProvider.notifier).reset();
-                      //   _inTimeController.clear();
-                      //   _outTimeController.clear();
-                      //
-                      //   if (_capturedFilePath != null) {
-                      //     AppLogger.info('✅ Image Path: $_capturedFilePath');
-                      //   }
-                      //
-                      //
-                      // },
+
+
+                        // Navigator.pushAndRemoveUntil(
+                        //   context,
+                        //   MaterialPageRoute(builder: (context) => LabourAttendancePage()),
+                        //       (Route<dynamic> route) => false,
+                        // );
+
+                      },
 
                       child: Text(buttonLabel),
                     ),
@@ -1629,11 +1062,13 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
           ),
           const Divider(),
           _buildInfoRow("Labour Name", name, "Labour Category", labourCategory),
+
           _buildInfoRowDW(
             "Date",
-            DateFormat('dd/MM/yyyy').format(DateTime.now()),
+            // DateFormat('dd/MM/yyyy').format(DateTime.now()),
+            _dateController.text.trim(),
             "Working Hrs.",
-            _workingHoursText, // display the dynamic working hours here
+            _workingHoursText,
           ),
           _buildInfoRowTime(
               // "In Time", // Title for In Time
@@ -1800,13 +1235,21 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
                   // ),
 
                   Text(
-                    _workingHoursText,
+                    _workingHoursController.text.trim(),
                     style: GoogleFonts.nunitoSans(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                       color: Colors.black,
                     ),
                   ),
+                  // Text(
+                  //   _workingHoursText,
+                  //   style: GoogleFonts.nunitoSans(
+                  //     fontSize: 14,
+                  //     fontWeight: FontWeight.w700,
+                  //     color: Colors.black,
+                  //   ),
+                  //  ),
                 ],
               ),
             ),
@@ -1815,59 +1258,6 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
       ),
     );
   }
-
-  // Widget _buildInfoRowTime(
-  //   String title1,
-  //   TimeOfDay? inTime,
-  //   String title2,
-  //   TimeOfDay? outTime,
-  // ) {
-  //   return Padding(
-  //     padding: const EdgeInsets.symmetric(vertical: 4.0),
-  //     child: Row(
-  //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //       children: [
-  //         Expanded(
-  //           child: Padding(
-  //             padding: const EdgeInsets.only(left: 8.0),
-  //             child: Column(
-  //               crossAxisAlignment: CrossAxisAlignment.start,
-  //               children: [
-  //                 TimePickerWidget(title: 'In Time', timeType: 'inTime'),
-  //               ],
-  //             ),
-  //           ),
-  //         ),
-  //         Container(
-  //           width: 2,
-  //           height: 30,
-  //           decoration: BoxDecoration(
-  //             gradient: LinearGradient(
-  //               begin: Alignment.topCenter,
-  //               end: Alignment.bottomCenter,
-  //               colors: [
-  //                 Color(0xffe5dcf3),
-  //                 Color(0xff9b79d0),
-  //                 Color(0xffe5dcf3),
-  //               ],
-  //             ),
-  //           ),
-  //         ),
-  //         Expanded(
-  //           child: Padding(
-  //             padding: const EdgeInsets.only(left: 8.0),
-  //             child: Column(
-  //               crossAxisAlignment: CrossAxisAlignment.start,
-  //               children: [
-  //                 TimePickerWidget(title: 'Out Time', timeType: 'outTime'),
-  //               ],
-  //             ),
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
 
   Widget _buildInfoRowTime() {
     return Padding(
@@ -1924,23 +1314,6 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
         suffixIcon: Icon(Icons.access_time),
         border: OutlineInputBorder(),
       ),
-      // onTap: () async {
-      //   TimeOfDay? picked = await showTimePicker(
-      //     context: context,
-      //     initialTime: TimeOfDay.now(),
-      //   );
-      //   if (picked != null) {
-      //     final formattedTime = picked.format(context);
-      //     setState(() {
-      //       _inTime = picked;
-      //       _workingHoursText = _calculateTimeDifference();
-      //
-      //       controller.text = formattedTime;
-      //       _workingHoursText =
-      //           _calculateTimeDifference(); // update the working hours text dynamically
-      //     });
-      //   }
-      // },
       onTap: onTap,
       validator: (value) {
         if (value == null || value.isEmpty) {
@@ -2055,6 +1428,25 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
     );
   }
 
+  // String formatTimeToIso(String timeStr) {
+  //   try {
+  //     final now = DateTime.now();
+  //     final parsedTime = DateFormat('hh:mm a').parse(timeStr.trim());
+  //     final dt = DateTime(
+  //       now.year,
+  //       now.month,
+  //       now.day,
+  //       parsedTime.hour,
+  //       parsedTime.minute,
+  //     );
+  //     return dt.toIso8601String();
+  //   } catch (e) {
+  //     return '';
+  //   }
+  // }
+
+
+
   Widget _buildUploadButton(VoidCallback onUploadSuccess) {
     return Column(
       children: [
@@ -2080,7 +1472,7 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
                 } else {
                   CustomSnackbar.show(
                     context,
-                    message: "❌ No image captured.",
+                    message: "No image captured.",
                     isError: true,
                   );
                 }
@@ -2111,7 +1503,7 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: SvgPicture.asset(
-                        "assets/icons/attendance/Upload-cam-svg.svg",
+                        "assets/icons/attendance_only/Upload-cam-svg.svg",
                         height: 24,
                         width: 24,
                       ),
@@ -2131,70 +1523,10 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
             ),
           ),
         ),
-        if (_capturedFilePath != null)
-          Padding(
-            padding: EdgeInsets.all(1.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "📁 File path: $_capturedFilePath",
-                  style: TextStyle(fontSize: 14, color: Colors.green[800]),
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  height: 500,
-                  width: double.infinity,
-                  padding: EdgeInsets.all(1.0),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: FutureBuilder<File>(
-                      future: _getImageFile(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return Center(child: CircularProgressIndicator());
-                        } else if (snapshot.hasError) {
-                          return Center(
-                            child: Text(
-                              'Error loading image',
-                              style: TextStyle(color: Colors.red),
-                            ),
-                          );
-                        } else if (snapshot.hasData && snapshot.data != null) {
-                          return Image.file(
-                            snapshot.data!,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                          );
-                        } else {
-                          return Center(
-                            child: Image.asset(
-                              'assets/images/defult_constro_img.png',
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
       ],
     );
   }
 
-  Future<File> _getImageFile() async {
-    await Future.delayed(Duration(seconds: 2));
-    return File(_capturedFilePath!);
-  }
 
   Future<void> _saveData({
     required int laborId,
@@ -2202,6 +1534,7 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
     required String company,
     required String category,
     required int? projectItemTypeId,
+    required int contractorId,
     required String activityName,
     required String remark,
     required String otHours,
@@ -2215,101 +1548,126 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
     double? latitude,
     double? longitude,
     String? currentLocation,
+    required String date,
   }) async {
     try {
-      // ✅ Convert image to base64 from path
-      String base64Image = "";
+      // Validate inTime: It must not be empty
+      if (inTime.isEmpty) {
+        AppLogger.warn("inTime is mandatory and cannot be empty.");
+        CustomSnackbar.show(
+          isError: true,
+          context,
+          message: "Please provide a valid In Time.",
+        );
+        return; // Exit early if inTime is invalid
+      }
 
+      // Convert image to base64 if an image is provided
+      String base64Image = "";
       if (imagePath.isNotEmpty) {
         final file = File(imagePath);
         if (await file.exists()) {
           final bytes = await file.readAsBytes();
-          base64Image = base64Encode(bytes);
-          AppLogger.debug(
-              "🖼️ Base64 Image (first 100 chars): ${base64Image.substring(0, 100)}...");
+          base64Image = base64Encode(bytes); // Convert image to base64
+          AppLogger.debug("Base64 Image (first 100 chars): ${base64Image.substring(0, 100)}...");
         } else {
-          AppLogger.warn("⚠️ Image file does not exist at path: $imagePath");
+          AppLogger.warn("Image file does not exist at path: $imagePath");
         }
       } else {
-        AppLogger.warn("⚠️ No image path provided. Skipping image encoding.");
+        AppLogger.warn("No image path provided. Skipping image encoding.");
       }
 
-      AppLogger.info("📌 [START] Initiating labour attendance save process...");
-      AppLogger.debug("🧾 Attendance Details:"
-          "\n🔹 Labour ID: $laborId"
-          "\n🔹 Name: $name"
-          "\n🔹 Company: $company"
-          "\n🔹 Category: $category"
-          "\n🔹 Activity: $activityName"
-          "\n🔹 Remark: $remark"
-          "\n🔹 OT Hours: $otHours"
-          "\n🔹 OT Rate: $otRate"
-          "\n🔹 In Time: $inTime"
-          "\n🔹 Out Time: $outTime"
-          "\n🔹 Total Hours: $totalHours"
-          "\n🔹 OverTime: $overTime"
-          "\n🔹 FileName: $fileName"
-          "\n🔹 Latitude: ${latitude ?? 'null'}"
-          "\n🔹 Longitude: ${longitude ?? 'null'}"
-          "\n🔹 Location: $currentLocation");
+      // Log the attendance_only details for debugging
+      AppLogger.info("Initiating labour attendance_only save process...");
+      AppLogger.debug("Attendance Details add or Save time:\n"
+          "Labour ID: $laborId\n"
+          "Name: $name\n"
+          "Company: $company\n"
+          "Category: $category\n"
+          "Activity: $activityName\n"
+          "Remark: $remark\n"
+          "OT Hours: $otHours\n"
+          "OT Rate: $otRate\n"
+          "In Time: $inTime\n"
+          "Out Time: $outTime\n"
+          "Total Hours: $totalHours\n"
+          "OverTime: $overTime\n"
+          "FileName: $fileName\n"
+          "Latitude: ${latitude ?? 'null'}\n"
+          "Longitude: ${longitude ?? 'null'}\n"
+          "Location: $currentLocation");
 
-      String formatTimeToIso(String time) {
+      // Helper function to format time (e.g., "08:30 AM" -> "2025-05-01T08:30:00")
+      // String formatTimeToIso(String time) {
+      //   try {
+      //     final now = DateTime.now();
+      //     final inputFormat = DateFormat('hh:mm a'); // 12-hour format with AM/PM
+      //     final parsedTime = inputFormat.parse(time);
+      //     final dateTime = DateTime(now.year, now.month, now.day, parsedTime.hour, parsedTime.minute);
+      //     final outputFormat = DateFormat("yyyy-MM-dd'T'HH:mm:ss");
+      //     return outputFormat.format(dateTime);
+      //   } catch (e) {
+      //     AppLogger.error("Invalid time format: $time. Error: $e");
+      //     return ''; // Return an empty string in case of error
+      //   }
+      // }
+
+
+
+
+      String formatTimeToIso(String timeStr) {
+        final now = DateTime.now();
+
         try {
-          final now = DateTime.now();
-          final inputFormat = DateFormat('hh:mm a'); // 12-hour format
-          final parsedTime = inputFormat.parse(time);
+          DateTime dateTime;
 
-          final dateTime = DateTime(
-            now.year,
-            now.month,
-            now.day,
-            parsedTime.hour,
-            parsedTime.minute,
-          );
+          if (timeStr.toLowerCase().contains('am') || timeStr.toLowerCase().contains('pm')) {
+            // 12-hour format with AM/PM
+            final inputFormat = DateFormat('hh:mm a');
+            final parsedTime = inputFormat.parse(timeStr.trim());
+            dateTime = DateTime(now.year, now.month, now.day, parsedTime.hour, parsedTime.minute);
+          } else {
+            // 24-hour format (e.g., "14:30")
+            final parts = timeStr.split(':');
+            if (parts.length != 2) return '';
 
-          // Format to "yyyy-MM-ddTHH:mm:ss"
-          final outputFormat = DateFormat("yyyy-MM-dd'T'HH:mm:ss");
-          return outputFormat.format(dateTime);
+            final hour = int.tryParse(parts[0].trim()) ?? 0;
+            final minute = int.tryParse(parts[1].trim()) ?? 0;
+            dateTime = DateTime(now.year, now.month, now.day, hour, minute);
+          }
+
+          return DateFormat("yyyy-MM-dd'T'HH:mm:ss").format(dateTime);
         } catch (e) {
-          AppLogger.error("Invalid time format: $time. Error: $e");
+          print("Invalid time format: $timeStr. Error: $e");
           return '';
         }
       }
 
-      // String formatTimeToIso(String time) {
-      //   try {
-      //     final now = DateTime.now();
-      //     final inputFormat =
-      //         DateFormat('hh:mm a'); // 12-hour format with AM/PM
-      //     final dateTime = inputFormat.parse(time);
-      //     final formatted = DateTime(
-      //         now.year, now.month, now.day, dateTime.hour, dateTime.minute);
-      //     return formatted.toIso8601String();
-      //   } catch (e) {
-      //     AppLogger.error("❌ Error in time format: $e");
-      //     return DateTime.now().toIso8601String(); // Fallback to current time
-      //   }
-      // }
 
-      final formattedInTime = formatTimeToIso(inTime); // 'inTime' like "08:30"
+      // Format inTime and outTime to ISO 8601 string
+      final formattedInTime = formatTimeToIso(inTime);
       final formattedOutTime = formatTimeToIso(outTime);
 
+
+      // Safe fallback for latitude and longitude if null
       final safeLatitude = latitude ?? 0.0;
       final safeLongitude = longitude ?? 0.0;
 
-      AppLogger.info(
-          "📤 [API CALL] Sending data to LabourAttendanceApiService.saveLabourAttendance()");
+      // Format date to ISO 8601 string (e.g., "2025-04-30T08:00:00")
+      //final formattedDate = date.toIso8601String().split('.')[0];
+      //AppLogger.debug("Formatted Attendance Date: $formattedDate");
 
+      // Send the attendance_only data to the API
       final response = await LabourAttendanceApiService().saveLabourAttendance(
         labourID: laborId,
-        status: "PRESENT",
+        status: "PRESENT", // Attendance status
         overTime: overTime,
         overTimeRate: otRate,
         inTime: formattedInTime,
         outTime: formattedOutTime,
         totalHours: totalHours,
         base64Image: base64Image,
-        fileName: fileName,
+        fileName: base64Image.isNotEmpty ? fileName : '', // Pass fileName only if base64Image is provided
         latitude: safeLatitude,
         longitude: safeLongitude,
         currentLocation: currentLocation,
@@ -2318,39 +1676,68 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
         activityName: activityName,
         remark: remark,
         contractorName: company,
+        contractorID: contractorId,
         projectItemTypeId: projectItemTypeId,
+        date: date,
       );
 
+      // Handle API response
       if (response != null && response['Status'] == 'Success') {
-        AppLogger.info(
-            "✅ [SUCCESS] Attendance saved successfully with ID: ${response['Data']}");
+        AppLogger.info("Attendance saved successfully with ID: ${response['Data']}");
 
-        // Trigger a re-fetch of the data
-        // await _fetchLabourAttendanceData();
+        // Refresh the screen and navigate
+        // Navigator.pop(context, true); // Close current screen
+        //Navigator.pop(context, true); // Close curren
+        // t screen
 
-        // ✅ Refresh UI: You can pop the dialog/screen and pass a flag if needed
+
+        //AppLogger.info('Navigating to LabourAttendancePage and clearing navigation stack.');
+        // Navigator.of(context).push(
+        //   MaterialPageRoute(builder: (context) => const LabourAttendancePage()),
+        //      // (Route<dynamic> route) => false,
+        // );
+
         // if (context.mounted) {
-        //   _fetchLabourAttendanceData();
-        //   Navigator.of(context).pop(true); // This can trigger refresh in parent using `then()`
-        //  // Navigator.of(context).pop(true); // This can trigger refresh in parent using `then()`
+        //   AppLogger.info('Context is still mounted, popping current screen.');
+        //   Navigator.of(context).pop();
+        // } else {
+        //   AppLogger.info('Context is no longer mounted, skipping Navigator.pop().');
         // }
 
-        Navigator.pop(context); // Pops the current screen
 
-        // Push the page again using the same route (LaborAttendanceAdd)
-        Navigator.pushReplacementNamed(
-          context,
-          AppRoutes.LaborAttendanceAdd,
-        );
+        // Navigator.pushReplacementNamed(context, AppRoutes.LaborAttendanceAdd); // Reopen the same screen for new data
+        // AppLogger.info("call rotes pushReplacementNamed");
 
+        Navigator.pop(context, true); // ✅ Go back & return success flag
+        Navigator.pop(context, true); // ✅ Go back & return success flag
+        AppLogger.info(" Go back ");
+
+
+        if (response == true) {
+         setState(() {
+
+          // Navigator.pushReplacementNamed(context, AppRoutes.LaborAttendanceAdd); // Reopen the same screen for new data
+          //AppLogger.info("call rotes pushReplacementNamed");
+
+
+         });
+        }
+
+       /////// Navigator.pushNamed(context, AppRoutes.LaborAttendanceAdd); // Reopen the same screen for new data
+
+
+      // Navigator.pop(context, true); // Close current screen
+      //  AppLogger.info("call rotes pop out");
 
       } else {
-        AppLogger.warn(
-            "⚠️ [FAILURE] Attendance save failed. Response: ${response ?? 'null'}");
+        AppLogger.warn("Attendance save failed. Response: ${response ?? 'null'}");
       }
     } catch (e, stackTrace) {
-      AppLogger.error("❌ [EXCEPTION] Error while saving attendance: $e");
-      AppLogger.debug("🪵 Stack Trace:\n$stackTrace");
+      // Log exception details
+      AppLogger.error("Error while saving attendance_only: $e");
+      AppLogger.debug("Stack Trace: $stackTrace");
+
+      // Show error message in case of an exception
       CustomSnackbar.show(
         isError: true,
         context,
@@ -2359,12 +1746,14 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
     }
   }
 
+
   Future<void> _editdata({
     required int laborId,
-    required int laborattedanceId,
+    required int laborAttendanceId,
     required String name,
     required String company,
     required String category,
+    required int contractorId,
     required int? projectItemTypeId,
     required String activityName,
     required String remark,
@@ -2379,52 +1768,52 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
     required double? latitude,
     required double? longitude,
     required String currentLocation,
+    required DateTime date,
   }) async {
     try {
-      // ✅ Convert image to base64 from path
-      // String? base64Image;
-      // if (imagePath != null && imagePath.isNotEmpty) {
-      //   final bytes = await File(imagePath).readAsBytes();
-      //   base64Image = base64Encode(bytes);
-      //   AppLogger.debug("🖼️ Base64 Image (first 100 chars): ${base64Image.substring(0, 100)}...");
-      // } else {
-      //   base64Image = '';  // Send empty base64 string when no image is available
-      // }
+      // Validate outTime: it must not be empty
+      if (outTime.isEmpty) {
+        AppLogger.warn("⚠️ outTime is mandatory and cannot be empty.");
+        CustomSnackbar.show(
+          isError: true,
+          context,
+          message: "Please provide a valid Out Time.",
+        );
+        return; // Exit early if outTime is invalid
+      }
 
-      // ✅ Time formatters
-      final now = DateTime.now();
-      final today = DateTime(now.year, now.month, now.day);
-
-      final apiTimeFormat = DateFormat("yyyy-MM-dd'T'HH:mm:ss");
-
-      // ✅ Parse inTime and outTime (supports both 24-hour & 12-hour format)
+      // Time formatter helper function for parsing input time
       DateTime parseTime(String timeStr) {
         try {
-          if (timeStr.toLowerCase().contains('am') ||
-              timeStr.toLowerCase().contains('pm')) {
-            return DateFormat("hh:mm a").parse(timeStr);
+          if (timeStr.toLowerCase().contains('am') || timeStr.toLowerCase().contains('pm')) {
+            return DateFormat("hh:mm a").parse(timeStr); // 12-hour format
           } else {
-            return DateFormat("HH:mm").parse(timeStr);
+            return DateFormat("HH:mm").parse(timeStr); // 24-hour format
           }
         } catch (e) {
           throw FormatException("Time format error: $timeStr");
         }
       }
 
+      // Parsing inTime and outTime strings
       final parsedIn = parseTime(inTime.trim());
       final parsedOut = parseTime(outTime.trim());
 
-      final fullInTime = DateTime(
-          today.year, today.month, today.day, parsedIn.hour, parsedIn.minute);
-      final fullOutTime = DateTime(
-          today.year, today.month, today.day, parsedOut.hour, parsedOut.minute);
+      // Creating full DateTime objects from parsed time
+      final fullInTime = DateTime(date.year, date.month, date.day, parsedIn.hour, parsedIn.minute);
+      final fullOutTime = DateTime(date.year, date.month, date.day, parsedOut.hour, parsedOut.minute);
 
+      // Formatting times to the required API format
+      final apiTimeFormat = DateFormat("yyyy-MM-dd'T'HH:mm:ss");
       final formattedInTime = apiTimeFormat.format(fullInTime);
       final formattedOutTime = apiTimeFormat.format(fullOutTime);
+
+      // Calculate total hours worked (difference in minutes converted to hours)
       final calculatedTotalHours = double.parse(
         (fullOutTime.difference(fullInTime).inMinutes / 60).toStringAsFixed(2),
       );
 
+      // Log attendance_only details
       AppLogger.info("📌 [START] Initiating labour edit...");
       AppLogger.debug("🧾 Attendance Details for edit :"
           "\n🔹 Labour ID: $laborId"
@@ -2437,63 +1826,43 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
           "\n🔹 In Time: $inTime"
           "\n🔹 Out Time: $outTime"
           "\n🔹 Total Hours..: $calculatedTotalHours"
-          "\n🔹 OverTime: $otHours"
+          "\n🔹 OverTime: $overTime"
           "\n🔹 FileName: $fileName"
           "\n🔹 Latitude: ${latitude ?? 'null'}"
           "\n🔹 Longitude: ${longitude ?? 'null'}"
           "\n🔹 Location: $currentLocation");
 
-      AppLogger.info("📤 [API CALL] saveLabourAttendance Edit api calling");
-
-      AppLogger.info("🆔 Labour ID       : $laborId");
-      AppLogger.info("🆔 Labour AttedanceID       : $laborattedanceId");
-      AppLogger.info("👷 Labour Name     : $name");
-      AppLogger.info("🏢 Contractor Name : $company");
-      AppLogger.info("📂 Category        : $category");
-      AppLogger.info("🔧 Activity        : $activityName");
-      AppLogger.info("🕒 In Time         : $formattedInTime");
-      AppLogger.info("🕔 Out Time        : $formattedOutTime");
-      AppLogger.info("⏱️ Overtime        : $otHours");
-      AppLogger.info("💰 OT Rate         : $otRate");
-      AppLogger.info("📍 Latitude        : $latitude");
-      AppLogger.info("📍 Longitude       : $longitude");
-      // // ✅ Calculate total hours (difference between inTime and outTime)
-      // final totalHours = fullOutTime.difference(fullInTime).inMinutes / 60;
-
-      // Log totalHours before API call
-      AppLogger.info("⏱️ Calculated Total Hours: $calculatedTotalHours");
-
-      // ✅ Log and prepare image file path and file name
-      AppLogger.info(
-          "🖼️ Image Path       : ${imagePath ?? 'No image provided'}");
+      // Log image path and filename
+      AppLogger.info("🖼️ Image Path       : ${imagePath ?? 'No image provided'}");
       AppLogger.info("📁 Image File Name  : $fileName");
 
+      // Convert image to base64 if provided
       String base64Image = '';
       if (imagePath != null && imagePath.isNotEmpty) {
         final file = File(imagePath);
         final bytes = await file.readAsBytes();
-        base64Image = base64Encode(bytes);
-        AppLogger.debug(
-            "🖼️ Base64 Image editing (first 100 chars): ${base64Image.substring}...");
+        base64Image = base64Encode(bytes); // Convert image to base64
+        AppLogger.debug("🖼️ Base64 Image editing (first 100 chars): ${base64Image.substring(0, 100)}...");
       } else {
         AppLogger.warn("⚠️ No image provided. Proceeding without image.");
       }
 
-// ✅ Log full request payload before API call
+      // Format the DateTime 'date' to a string
+      final formattedDate = DateFormat("yyyy-MM-dd").format(date);
+
+      // Prepare the payload for the API call
       final payload = {
-        "labourAttendanceID": laborattedanceId,
+        "labourAttendanceID": laborAttendanceId,
         "labourID": laborId,
         "status": "PRESENT",
-        "overtime": otHours,
+        "overtime": overTime,
         "overtimeRate": otRate,
         "inTime": formattedInTime,
         "outTime": formattedOutTime,
         "totalHours": calculatedTotalHours,
-        "contractorID": widget.attendance?.contractorId ?? 0,
+        "contractorID": contractorId,
         "fileName": fileName,
-        "base64Image": base64Image.isNotEmpty
-            ? base64Image.substring(0, 50) + "..."
-            : "No image",
+        "base64Image": base64Image.isNotEmpty ? base64Image.substring(0, 50) + "..." : "No image",
         "latitude": latitude,
         "longitude": longitude,
         "currentLocation": currentLocation,
@@ -2506,24 +1875,22 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
         "approvedBy": null,
         "approvedDate": null,
         "isPaid": false,
-        "projectItemTypeId": projectItemTypeId,
+        "projectItemTypeId": projectItemTypeId ?? 0,
       };
       AppLogger.debug("📦 [Payload to editLabourAttendance]:\n$payload");
 
+      // Make the API call to edit labour attendance_only
       final response = await LabourAttendanceApiService().editLabourAttendance(
-        labourAttendanceID: laborattedanceId,
+        labourAttendanceID: laborAttendanceId,
         labourID: laborId,
         status: "PRESENT",
         overtime: otHours,
-        //overtimeRate: double.parse(otRate),
-        // overtimeRate: double.tryParse(otRate) ?? 0.0,
         overtimeRate: otRate,
         inTime: formattedInTime,
         outTime: formattedOutTime,
-        //totalHours: totalHours,
         totalHours: calculatedTotalHours,
-        //companyCode: company,
-        contractorID: widget.attendance?.contractorId ?? 0,
+        contractorID: contractorId,
+        //contractorID: widget.attendance_only?.contractorId ?? 0,
         fileName: fileName,
         base64Image: base64Image ?? "",
         latitude: latitude,
@@ -2539,18 +1906,32 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
         approvedDate: null,
         isPaid: false,
         projectItemTypeId: projectItemTypeId ?? 0,
+        date: formattedDate,
       );
 
+      // Handle the API response
       if (response != null && response['Status'] == 'Success') {
-        AppLogger.info(
-            "✅ [SUCCESS] Attendance saved successfully with ID: ${response['Data']}");
+        AppLogger.info("✅ [SUCCESS] Attendance saved successfully with ID: ${response['Data']}");
+        // Optionally navigate or perform other actions
+
+        Navigator.pop(context, true); // Close current screen
+        // Navigator.pushReplacementNamed(context, AppRoutes.LaborAttendanceAdd);
+
+        // Navigator.pushReplacement(
+        //   context,
+        //   MaterialPageRoute(builder: (_) => const LabourAttendancePage()),
+        // );
+
+
       } else {
-        AppLogger.warn(
-            "⚠️ Attendance edit failed. Response: ${response ?? 'null'}");
+        AppLogger.warn("⚠️ Attendance edit failed. Response: ${response ?? 'null'}");
       }
     } catch (e, stackTrace) {
-      AppLogger.error("❌ [EXCEPTION]Exception during edit: $e");
+      // Log any errors that occur
+      AppLogger.error("❌ [EXCEPTION] Exception during edit: $e");
       AppLogger.debug("🪵 Stack Trace:\n$stackTrace");
+
+      // Show error message to the user
       CustomSnackbar.show(
         isError: true,
         context,
@@ -2560,7 +1941,7 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
   }
 }
 
-class CustomFormWidgets {
+  class CustomFormWidgets {
   static Widget buildDropdown({
     required BuildContext context,
     required String label,

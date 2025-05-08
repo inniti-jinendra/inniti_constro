@@ -6,6 +6,7 @@ class UserAuthenticationModel {
   final String activeProjectId;
   final String token;
   final String generatedOtp;
+  final String userType;
 
   // ✅ Computed Property to check if the user is authorized
   bool get authorizedUser => userId.isNotEmpty;
@@ -18,6 +19,7 @@ class UserAuthenticationModel {
     required this.activeProjectId,
     required this.token,
     required this.generatedOtp,
+    required this.userType,
   });
 
   // ✅ Convert JSON response to Model
@@ -30,6 +32,7 @@ class UserAuthenticationModel {
       activeProjectId: json['ActiveProjectID'] ?? '',
       token: json['GeneratedToken'] ?? '',
       generatedOtp: json['GeneratedOtp'] ?? '',
+      userType: json['UserType'] ?? 'REGULAR',
     );
   }
 
@@ -43,6 +46,7 @@ class UserAuthenticationModel {
       "ActiveProjectID": activeProjectId,
       "GeneratedToken": token,
       "GeneratedOtp": generatedOtp,
+      "UserType": userType,
     };
   }
 }

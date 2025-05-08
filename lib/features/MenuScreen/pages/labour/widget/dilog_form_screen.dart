@@ -176,6 +176,79 @@ class CustomFormWidgets {
     );
   }
 
+  // static Widget buildDropdown({
+  //   required BuildContext context,
+  //   required String label,
+  //   required List<String> items,
+  //   required String? selectedItem,
+  //   required Function(String?) onChanged,
+  //   String? Function(String?)? validator,
+  //   bool isRequired = false,
+  //   bool showSearchBox = true,
+  // }) {
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.start,
+  //     children: [
+  //       RichText(
+  //         text: TextSpan(
+  //           text: label,
+  //           style: TextStyle(
+  //             //fontWeight: FontWeight.bold,
+  //             color: Colors.black,
+  //             fontSize: 13,
+  //           ),
+  //           children: isRequired
+  //               ? [
+  //             TextSpan(
+  //               text: ' *',
+  //               style: TextStyle(color: Colors.red),
+  //             ),
+  //           ]
+  //               : [],
+  //         ),
+  //       ),
+  //       const SizedBox(height: 4),
+  //       FormField<String>(
+  //         initialValue: selectedItem,
+  //         validator: validator,
+  //         builder: (FormFieldState<String> state) {
+  //           return Column(
+  //             crossAxisAlignment: CrossAxisAlignment.start,
+  //             children: [
+  //               CustomDropdown<String>.search(
+  //                 hintText: "Select $label",
+  //                 items: items,
+  //                 initialItem: selectedItem,
+  //                 onChanged: (value) {
+  //                   state.didChange(value);
+  //                   onChanged(value);
+  //                 },
+  //                 decoration: CustomDropdownDecoration(
+  //                   expandedFillColor: AppColors.scaffoldWithBoxBackground,
+  //                   closedFillColor: AppColors.primaryWhitebg,
+  //                   hintStyle: TextStyle(color: AppColors.primaryBlackFont),
+  //                 ),
+  //               ),
+  //               if (state.hasError)
+  //                 Padding(
+  //                   padding: const EdgeInsets.only(top: 8.0),
+  //                   child: Text(
+  //                     state.errorText ?? '',
+  //                     style: TextStyle(
+  //                       color: Colors.red,
+  //                       fontSize: 13,
+  //                       fontWeight: FontWeight.w400,
+  //                     ),
+  //                   ),
+  //                 ),
+  //             ],
+  //           );
+  //         },
+  //       ),
+  //     ],
+  //   );
+  // }
+
   static Widget buildDropdown({
     required BuildContext context,
     required String label,
@@ -184,6 +257,7 @@ class CustomFormWidgets {
     required Function(String?) onChanged,
     String? Function(String?)? validator,
     bool isRequired = false,
+    bool showSearchBox = true,  // New parameter to control visibility of search box
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -192,7 +266,6 @@ class CustomFormWidgets {
           text: TextSpan(
             text: label,
             style: TextStyle(
-              //fontWeight: FontWeight.bold,
               color: Colors.black,
               fontSize: 13,
             ),
@@ -214,7 +287,22 @@ class CustomFormWidgets {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CustomDropdown<String>.search(
+                showSearchBox
+                    ? CustomDropdown<String>.search(
+                  hintText: "Select $label",
+                  items: items,
+                  initialItem: selectedItem,
+                  onChanged: (value) {
+                    state.didChange(value);
+                    onChanged(value);
+                  },
+                  decoration: CustomDropdownDecoration(
+                    expandedFillColor: AppColors.scaffoldWithBoxBackground,
+                    closedFillColor: AppColors.primaryWhitebg,
+                    hintStyle: TextStyle(color: AppColors.primaryBlackFont),
+                  ),
+                )
+                    : CustomDropdown<String>(
                   hintText: "Select $label",
                   items: items,
                   initialItem: selectedItem,
@@ -435,7 +523,7 @@ class LabourFormFields {
         label:  "Contractor Name",
         items: contractorNames,
         selectedItem: selectedContractor,
-        onChanged: (value) {
+        onChanged: (String? value) {
           AppLogger.info("Contractor selected: $value");
           AppLogger.info("Contractor selected:=> ${value.toString()} (ID: ${value})");
           onContractorChanged(value);
@@ -539,9 +627,11 @@ class LabourFormFields {
                   return null;
                 },
                 isRequired: true,
+                showSearchBox: false, // Add this parameter to hide the search box
               ),
             ),
           ),
+
           SizedBox(width: 10),
           Expanded(
             child: CustomFormWidgets.buildTextField(
@@ -585,9 +675,19 @@ class LabourFormFields {
               label: "Aadhaar ID",
               hint: "Aadhaar Number",
               controller: idController,
-              validator:
-                  (value) =>
-                      value == null || value.isEmpty ? "ID is required" : null,
+              keyboardType: TextInputType.phone,
+              validator: (value) {
+                // Check if the field is empty
+                if (value == null || value.isEmpty) {
+                  return "ID is required";
+                }
+                // Aadhaar card number validation
+                final RegExp regex = RegExp(r'^[2-9]{1}[0-9]{11}$');
+                if (!regex.hasMatch(value)) {
+                  return 'Please enter a valid 12-digit Aadhaar number';
+                }
+                return null; // Validation passed
+              },
             ),
           ),
         ],

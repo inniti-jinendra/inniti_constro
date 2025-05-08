@@ -7,7 +7,7 @@
 // import 'package:geolocator/geolocator.dart';
 // import 'package:google_fonts/google_fonts.dart';
 // import 'package:image_picker/image_picker.dart';
-// import 'package:inniti_constro/features/MenuScreen/pages/labour_attendance/widget/reusable_btn_widget.dart';
+// import 'package:inniti_constro/features/MenuScreen/pages/labour_attendance_old/widget/reusable_btn_widget.dart';
 // import 'package:intl/intl.dart';
 // import 'package:permission_handler/permission_handler.dart';
 // import '../../../../../core/constants/app_colors.dart';
@@ -29,7 +29,7 @@
 //   final String id;
 //   final String name;
 //   final String company;
-//   final String attendance;
+//   final String attendance_only;
 //   final String labourCategory;
 //   final int labourID;
 //   final int labourAttendanceID;
@@ -41,7 +41,7 @@
 //     required this.id,
 //     required this.name,
 //     required this.company,
-//     required this.attendance,
+//     required this.attendance_only,
 //     required this.labourCategory,
 //     required this.labourID,
 //     required this.labourAttendanceID,
@@ -208,7 +208,7 @@
 //           }
 //         } catch (e, stackTrace) {
 //           AppLogger.error(
-//             "❌ Failed to fetch or parse attendance: $e\n$stackTrace",
+//             "❌ Failed to fetch or parse attendance_only: $e\n$stackTrace",
 //           );
 //         }
 //       },
@@ -279,7 +279,7 @@
 //                         child: Center(
 //                           child: Text(
 //                             // widget.status.toString(),
-//                             widget.attendance,
+//                             widget.attendance_only,
 //                             style: GoogleFonts.nunitoSans(
 //                               fontSize: 12,
 //                               fontWeight: FontWeight.w500,
@@ -484,8 +484,8 @@
 //       //   CustomSnackbar.show(context, message: "Attendance saved successfully!");
 //       //   Navigator.pop(context);
 //       // } else {
-//       //   AppLogger.error("❌ Failed to save attendance.");
-//       //   CustomSnackbar.show(context, message: "Failed to save attendance.");
+//       //   AppLogger.error("❌ Failed to save attendance_only.");
+//       //   CustomSnackbar.show(context, message: "Failed to save attendance_only.");
 //       // }
 //     }
 //
@@ -571,7 +571,7 @@
 //       String fileName = _capturedFilePath?.split("/").last ?? "dummy_image.jpg";
 //
 //       if (actionButtonText == "Save") {
-//         AppLogger.info("💾 Action: Save new attendance record");
+//         AppLogger.info("💾 Action: Save new attendance_only record");
 //         //_saveData(); // Your actual save function
 //
 //         // Pass all data to the save function
@@ -598,10 +598,10 @@
 //       } else if
 //       (actionButtonText == "Edit") {
 //         // Log action of editing
-//         AppLogger.info("✏️ Action: Edit existing attendance record");
+//         AppLogger.info("✏️ Action: Edit existing attendance_only record");
 //
 //         // Log action of editing
-//         AppLogger.info("✏️ Action: Edit existing attendance record");
+//         AppLogger.info("✏️ Action: Edit existing attendance_only record");
 //
 //         // Log all current data before editing
 //         AppLogger.info("📋 [Form Data] Editing Attendance Record...");
@@ -927,7 +927,7 @@
 //                         borderRadius: BorderRadius.circular(8),
 //                       ),
 //                       child: SvgPicture.asset(
-//                         "assets/icons/attendance/Upload-cam-svg.svg",
+//                         "assets/icons/attendance_only/Upload-cam-svg.svg",
 //                         height: 24,
 //                         width: 24,
 //                       ),

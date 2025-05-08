@@ -48,8 +48,10 @@ import '../../../core/constants/app_defaults.dart';
 import '../../../core/constants/app_images.dart';
 import '../../../core/network/logger.dart';
 import '../../../core/utils/secure_storage_util.dart';
+import '../../../routes/app_routes.dart';
 import '../../../theme/themes/app_themes.dart';
 import '../../../widgets/CustomToast/custom_snackbar.dart';
+import '../../../widgets/global_loding/global_loader.dart';
 import 'dialogs/verified_dialogs_ERP.dart';
 
 
@@ -166,19 +168,74 @@ class VerifyButton extends StatelessWidget {
                 await SecureStorageUtil.writeSecureData("VerifiedUser", users.userId);
                 await SecureStorageUtil.writeSecureData("VerifiedToken", users.token);
 
+                // ✅ Update authorization status to true
+                await SecureStorageUtil.writeSecureData("IsAuthorized", "true");
+
                 AppLogger.info("🔹 Session Verified & Stored Successfully");
 
                 // ✅ Show verification popup
-                showGeneralDialog(
-                  barrierLabel: 'Dialog',
-                  barrierDismissible: true,
-                  context: context,
-                  pageBuilder: (ctx, anim1, anim2) => VerifiedDialog(users: users),
-                  transitionBuilder: (ctx, anim1, anim2, child) => ScaleTransition(
-                    scale: anim1,
-                    child: child,
-                  ),
-                );
+                // showGeneralDialog(
+                //   barrierLabel: 'Dialog',
+                //   barrierDismissible: true,
+                //   context: context,
+                //   pageBuilder: (ctx, anim1, anim2) => VerifiedDialog(users: users),
+                //   transitionBuilder: (ctx, anim1, anim2, child) => ScaleTransition(
+                //     scale: anim1,
+                //     child: child,
+                //   ),
+                // );
+                try {
+                  AppLogger.info("🔹 Navigating to  Page... Retrieving stored session data.");
+
+                  // ✅ Show global loader before logout
+                  GlobalLoader.show(context);
+
+                  // ✅ Small delay to ensure SharedPreferences has stored data
+                  await Future.delayed(const Duration(milliseconds: 500));
+
+                  // ✅ Retrieve stored session details
+                  String loggedIn = await SharedPreferencesUtil.getString("LoggedIn") ?? "false";
+                  String companyCode = await SharedPreferencesUtil.getString("CompanyCode") ?? "";
+                  String userId = await SharedPreferencesUtil.getString("ActiveUserID") ?? "";
+                  String email = await SharedPreferencesUtil.getString("ActiveEmailID") ?? "";
+                  String mobile = await SharedPreferencesUtil.getString("ActiveMobileNo") ?? "";
+                  String activeProjectId = await SharedPreferencesUtil.getString("ActiveProjectID") ?? "0";
+                  String? userType = await SecureStorageUtil.readSecureData("UserType") ?? "REGULAR";
+
+                  AppLogger.info("📌 Retrieved User Session Data:");
+                  AppLogger.info("🔹 LoggedIn: $loggedIn");
+                  AppLogger.info("🔹 CompanyCode: $companyCode");
+                  AppLogger.info("🔹 UserID: $userId");
+                  AppLogger.info("🔹 Email: $email");
+                  AppLogger.info("🔹 Mobile: $mobile");
+                  AppLogger.info("🔹 ActiveProjectID: $activeProjectId");
+                  AppLogger.info("🔹 UserType: $userType");
+
+                  GlobalLoader.hide(); // ✅ Hide loader after API call
+
+                  if (loggedIn == "true" && userId.isNotEmpty ) {
+                    AppLogger.info("✅ User is authenticated. Redirecting to Home...");
+                    //Navigator.pushNamed(context, AppRoutes.entryPoint);
+
+                    if (userType == "ATTENDANCE ONLY") {
+                      AppLogger.info("ATTENDANCE ONLY user. Navigating to OnlySelfAttendance...");
+                      Navigator.pushReplacementNamed(context, AppRoutes.OnlyselfAttendance);
+                    } else {
+                      AppLogger.info("REGULAR user. Navigating to entryPoint...");
+                      Navigator.pushReplacementNamed(context, AppRoutes.entryPoint);
+                    }
+
+
+                  } else {
+                    AppLogger.warn("❌ User session is invalid. Redirecting to Login...");
+                    Navigator.pushNamed(context, AppRoutes.login);
+                  }
+                } catch (e) {
+                  Navigator.pop(context); // Remove loading indicator on error
+                  AppLogger.error("❌ Error retrieving session data: $e");
+                  CustomSnackbar.show(context, message: "Failed to proceed. Please try again.");
+                }
+
               } else {
                 AppLogger.warn("❌ OTP Mismatch! Entered: $enteredOtp, Expected: ${users.generatedOtp}");
 
@@ -186,6 +243,10 @@ class VerifyButton extends StatelessWidget {
                 Future.microtask(() {
                   CustomSnackbar.show(context, message: ' OTP Mismatch!');
                 });
+
+                // Mark as unauthorized if OTP mismatch occurs
+                await SecureStorageUtil.writeSecureData("IsAuthorized", "false");
+
               }
             } else {
               AppLogger.error("❌ OTP is empty or null! Entered: '$enteredOtp', Expected: '${users.generatedOtp}'");
@@ -193,6 +254,10 @@ class VerifyButton extends StatelessWidget {
               Future.microtask(() {
                 CustomSnackbar.show(context, message: ' OTP field is empty!');
               });
+
+              // Mark as unauthorized if OTP is empty or null
+              await SecureStorageUtil.writeSecureData("IsAuthorized", "false");
+
             }
           },
 

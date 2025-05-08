@@ -1,7 +1,7 @@
 // import 'dart:developer';
 // import 'package:flutter/material.dart';
 // import 'package:google_fonts/google_fonts.dart';
-// import 'package:inniti_constro/features/MenuScreen/pages/labour_attendance/widget/LabourCard.dart';
+// import 'package:inniti_constro/features/MenuScreen/pages/labour_attendance_old/widget/LabourCard.dart';
 // import 'package:intl/intl.dart';
 //
 // import '../../../../core/constants/app_colors.dart';
@@ -93,11 +93,11 @@
 //               "ID=${labour.labourID}, "
 //               "Name=${labour.labourName}, "
 //               "Contractor=${labour.contractorName}, "
-//               "Attendance=${labour.attendance}, "
+//               "Attendance=${labour.attendance_only}, "
 //               "Category=${labour.labourCategory}");
 //         }
 //
-//         totalPresent = filteredLabours.where((labour) => labour.attendance == "P").length; // Calculate total present
+//         totalPresent = filteredLabours.where((labour) => labour.attendance_only == "P").length; // Calculate total present
 //
 //
 //         AppLogger.info("✅ [SUCCESS] Labour Attendance Data loaded successfully.");
@@ -142,7 +142,7 @@
 //       contractorController.clear();
 //       mobileController.clear();
 //       filteredLabours = List.from(labourAttendanceList);
-//       totalPresent = filteredLabours.where((labour) => labour.attendance == "P").length;
+//       totalPresent = filteredLabours.where((labour) => labour.attendance_only == "P").length;
 //     });
 //   }
 //
@@ -233,7 +233,7 @@
 //
 //   @override
 //   Widget build(BuildContext context) {
-//     int totalPresent = filteredLabours.where((labour) => labour.attendance == "P").toList().length;
+//     int totalPresent = filteredLabours.where((labour) => labour.attendance_only == "P").toList().length;
 //
 //     return Scaffold(
 //       appBar: AppBar(
@@ -288,7 +288,7 @@
 //                       name: labour.labourName,
 //                       company: labour.contractorName,
 //                       labourCategory: labour.labourCategory,
-//                       attendance: labour.attendance,
+//                       attendance_only: labour.attendance_only,
 //                       labourID: labour.labourID, // Pass as int
 //                       labourAttendanceID : labour.LabourAttendanceID,
 //                       selectedDate: selectedDate,
@@ -424,7 +424,7 @@
 // //               }
 // //             },
 // //             title: Text(item.contractorName ?? 'No Name'),
-// //             subtitle: Text("${item.labourName ?? 'N/A'} - ${item.attendance ?? 'N/A'}"),
+// //             subtitle: Text("${item.labourName ?? 'N/A'} - ${item.attendance_only ?? 'N/A'}"),
 // //             trailing: Column(
 // //               children: [
 // //                 Text(item.labourCode ?? 'N/A'),

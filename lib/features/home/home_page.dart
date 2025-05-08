@@ -391,6 +391,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:inniti_constro/core/constants/app_colors.dart';
 
+import '../../core/network/logger.dart';
+import '../../core/utils/secure_storage_util.dart';
 import 'components/ERP_dashboard_lead_project_details.dart';
 
 import 'home_screen_entry_point/Widget/CustomAppBar.dart';
@@ -415,15 +417,19 @@ class HomePageContent extends StatelessWidget {
             SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.all(padding),
-                child: ErpDashboardLeadProject(
-                  initialProject: "SWAGAT V2",
-                  progressPercent: 0.66, // 30% progress
-                  onSelectionChanged: () {
-                    print("Project selection changed!");
+                child:ErpDashboardLeadProject(
+                  progressPercent: 0.66,
+                  onChanged: (name, id) {
+                    print("Project changed to $name (ID: $id)");
+                    _storeSelectedProject(name, id);
                   },
                 ),
+
+
               ),
             ),
+
+
             SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.all(padding),
@@ -461,32 +467,32 @@ class HomePageContent extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 20),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'On Going Task',
-                          style: GoogleFonts.nunitoSans(
-                            fontSize: screenWidth * 0.05, // Dynamic font size
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primaryBlackFont,
-                          ),
-                        ),
-                        Text(
-                          'See all',
-                          style: GoogleFonts.nunitoSans(
-                            fontSize: screenWidth * 0.04, // Dynamic font size
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xff7445BA),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    _buildTaskCard(screenWidth),
-                    _buildTaskCard(screenWidth),
-                    _buildTaskCard(screenWidth),
+                    // Row(
+                    //   crossAxisAlignment: CrossAxisAlignment.center,
+                    //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    //   children: [
+                    //     Text(
+                    //       'On Going Task',
+                    //       style: GoogleFonts.nunitoSans(
+                    //         fontSize: screenWidth * 0.05, // Dynamic font size
+                    //         fontWeight: FontWeight.w700,
+                    //         color: AppColors.primaryBlackFont,
+                    //       ),
+                    //     ),
+                    //     Text(
+                    //       'See all',
+                    //       style: GoogleFonts.nunitoSans(
+                    //         fontSize: screenWidth * 0.04, // Dynamic font size
+                    //         fontWeight: FontWeight.w700,
+                    //         color: Color(0xff7445BA),
+                    //       ),
+                    //     ),
+                    //   ],
+                    // ),
+                    // const SizedBox(height: 12),
+                    // _buildTaskCard(screenWidth),
+                    // _buildTaskCard(screenWidth),
+                    // _buildTaskCard(screenWidth),
                   ],
                 ),
               ),
@@ -568,78 +574,98 @@ class HomePageContent extends StatelessWidget {
           ),
         ],
       ),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Machinery Work',
-              style: GoogleFonts.nunitoSans(
-                fontWeight: FontWeight.w700,
-                fontSize: screenWidth * 0.05, // Dynamic font size
-                color: AppColors.primaryLightGrayFont,
-              ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Machinery Work',
+            style: GoogleFonts.nunitoSans(
+              fontWeight: FontWeight.w700,
+              fontSize: screenWidth * 0.05, // Dynamic font size
+              color: AppColors.primaryLightGrayFont,
             ),
-            SizedBox(height: screenWidth * 0.02),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  SvgPicture.asset(
-                    "assets/icons/home-iocn/pin-icon.svg",
-                    height: 16,
-                    width: 16,
-                  ),
-                  SizedBox(width: 5,),
-                  Container(
-                    padding: EdgeInsets.only(bottom: 2.0), // Adjust bottom padding as needed
-                    child: Flexible(
-                      child: Text(
-                        'WING A > FLOOR 1 ~ CENTERING WORK PHASE',
-                        style: GoogleFonts.nunitoSans(
-                          fontWeight: FontWeight.w500,
-                          fontSize: screenWidth * 0.035, // Dynamic font size
-                          color: AppColors.primaryLightGrayFont,
-                        ),
-                        overflow: TextOverflow.ellipsis, // Handle overflow with ellipsis
-                        maxLines: 1, // Limit to a single line
-                      ),
+          ),
+          SizedBox(height: screenWidth * 0.02),
+          Row(
+            children: [
+              SvgPicture.asset(
+                "assets/icons/home-iocn/pin-icon.svg",
+                height: 16,
+                width: 16,
+              ),
+              SizedBox(width: 5,),
+              Container(
+                padding: EdgeInsets.only(bottom: 2.0), // Adjust bottom padding as needed
+                child: Flexible(
+                  child: Text(
+                    'WING A > FLOOR 1 ~ CENTERING WORK PHASE'.length > 35
+                        ? 'WING A > FLOOR 1 ~ CENTERING WORK PHASE'.substring(0, 35) + '...'
+                        : 'WING A > FLOOR 1 ~ CENTERING WORK PHASE',
+                    style: GoogleFonts.nunitoSans(
+                      fontWeight: FontWeight.w500,
+                      fontSize: screenWidth * 0.035, // Dynamic font size
+                      color: AppColors.primaryLightGrayFont,
                     ),
+                    overflow: TextOverflow.ellipsis, // Optional for any text that doesn't fit
+                    maxLines: 1, // Limit to a single line
                   ),
-                ],
+                ),
               ),
-            ),
-            SizedBox(height: screenWidth * 0.02),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Progress',
-                  style: GoogleFonts.nunitoSans(
-                    fontWeight: FontWeight.w500,
-                    fontSize: screenWidth * 0.035, // Dynamic font size
-                    color: AppColors.primaryLightGrayFont,
-                  ),
+
+
+            ],
+          ),
+          SizedBox(height: screenWidth * 0.02),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Progress',
+                style: GoogleFonts.nunitoSans(
+                  fontWeight: FontWeight.w500,
+                  fontSize: screenWidth * 0.035, // Dynamic font size
+                  color: AppColors.primaryLightGrayFont,
                 ),
-                Text(
-                  '72% Completed',
-                  style: GoogleFonts.nunitoSans(
-                    fontWeight: FontWeight.w700,
-                    fontSize: screenWidth * 0.035, // Dynamic font size
-                    color: AppColors.primaryBlueFont,
-                  ),
+              ),
+              Text(
+                '72% Completed',
+                style: GoogleFonts.nunitoSans(
+                  fontWeight: FontWeight.w700,
+                  fontSize: screenWidth * 0.035, // Dynamic font size
+                  color: AppColors.primaryBlueFont,
                 ),
-              ],
-            ),
-            SizedBox(height: screenWidth * 0.02),
-            LinearProgressIndicator(
-              value: 0.72,
-              backgroundColor: Colors.grey[300],
-              color: Colors.purple,
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+          SizedBox(height: screenWidth * 0.02),
+          LinearProgressIndicator(
+            value: 0.72,
+            backgroundColor: Colors.grey[300],
+            color: Colors.purple,
+          ),
+        ],
       ),
     );
   }
+
+  Future<void> _storeSelectedProject(String? name, int? id) async {
+    // Retrieve the old project data from secure storage
+    String? oldProjectName = await SecureStorageUtil.readSecureData("ActiveProjectName");
+    String? oldProjectId = await SecureStorageUtil.readSecureData("ActiveProjectID");
+
+    // Print old project details (logging)
+    if (oldProjectName != null && oldProjectId != null) {
+      AppLogger.info("Old Project: $oldProjectName (ID: $oldProjectId)");
+    }
+
+    // Store the new project name and ID securely
+    if (name != null && id != null) {
+      await SecureStorageUtil.writeSecureData("ActiveProjectName", name);
+      await SecureStorageUtil.writeSecureData("ActiveProjectID", id.toString());
+
+      AppLogger.info("✅ Project $name (ID: $id) stored securely.");
+    }
+  }
+
+
 }

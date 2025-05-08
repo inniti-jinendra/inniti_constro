@@ -35,6 +35,7 @@ class GlobalState {
   final ValueNotifier<String?> totalHours = ValueNotifier(null);
   final ValueNotifier<String?> inDocumentPath = ValueNotifier(null);
   final ValueNotifier<String?> outDocumentPath = ValueNotifier(null);
+  final ValueNotifier<String?> employeeName = ValueNotifier(null);
 
   // New for attendanceId
   final ValueNotifier<String?> attendanceId = ValueNotifier(null);
@@ -70,7 +71,7 @@ class _SelfAttendanceScreenState extends State<SelfAttendanceScreen> {
 
     if (hasPermission) {
       AppLogger.info(
-          "✅ Location permission confirmed. Fetching attendance data...");
+          "✅ Location permission confirmed. Fetching attendance_only data...");
       _fetchAttendanceData(); // Only call API if permission is granted
     } else {
       AppLogger.warn("❌ Location permission denied. Showing dialog...");
@@ -112,7 +113,7 @@ class _SelfAttendanceScreenState extends State<SelfAttendanceScreen> {
       builder: (context) => AlertDialog(
         title: Text("📍 Location Permission Required"),
         content: Text(
-          "Location access is needed to mark attendance. Please allow it in app settings.",
+          "Location access is needed to mark attendance_only. Please allow it in app settings.",
         ),
         actions: [
           TextButton(
@@ -135,12 +136,12 @@ class _SelfAttendanceScreenState extends State<SelfAttendanceScreen> {
     );
   }
   // Future<void> _fetchAttendanceData() async {
-  //   AppLogger.info("📡 Starting self-attendance data fetch...");
+  //   AppLogger.info("📡 Starting self-attendance_only data fetch...");
   //   setState(() => _isLoading = true);
   //
   //   try {
   //     final data = await AttendanceApiService.fetchSelfAttendanceData();
-  //     AppLogger.info("✅ Fetched ${data.length} self-attendance record(s)");
+  //     AppLogger.info("✅ Fetched ${data.length} self-attendance_only record(s)");
   //
   //     if (data.isNotEmpty) {
   //       final firstRecord = data.first;
@@ -165,7 +166,7 @@ class _SelfAttendanceScreenState extends State<SelfAttendanceScreen> {
   //
   //       // Check if presentHours is non-zero
   //       final attendanceStatus = firstRecord.presentHours != null && firstRecord.presentHours!.inMinutes > 0 ? 'Present' : 'Absent';
-  //       final attendanceDate = DateFormat('yyyy-MM-dd').format(DateTime.now()); // Assuming today for attendance date
+  //       final attendanceDate = DateFormat('yyyy-MM-dd').format(DateTime.now()); // Assuming today for attendance_only date
   //       final totalHours = firstRecord.presentHours?.toString() ?? "0 Hrs. 00 Min";
   //
   //       AppLogger.info("🔍 empAttendanceId: $empAttendanceIdStr");
@@ -220,10 +221,10 @@ class _SelfAttendanceScreenState extends State<SelfAttendanceScreen> {
   //
   //       // ref.read(selfAttendanceDataProvider.notifier).state = data;
   //     } else {
-  //       AppLogger.warn("⚠️ No self-attendance records found.");
+  //       AppLogger.warn("⚠️ No self-attendance_only records found.");
   //     }
   //   } catch (e) {
-  //     _error = "❌ Error fetching attendance data: ${e.toString()}";
+  //     _error = "❌ Error fetching attendance_only data: ${e.toString()}";
   //     AppLogger.error(_error!);
   //   } finally {
   //     setState(() => _isLoading = false);
@@ -240,16 +241,18 @@ class _SelfAttendanceScreenState extends State<SelfAttendanceScreen> {
   }
 
   Future<void> _fetchAttendanceData() async {
-    AppLogger.info("📡 Starting self-attendance data fetch...");
+    AppLogger.info("📡 Starting self-attendance_only data fetch...");
     setState(() => _isLoading = true);
 
     try {
-      final data = await AttendanceApiService.fetchSelfAttendanceData();
-      AppLogger.info("✅ Fetched ${data.length} self-attendance record(s)");
+      final data = await SelfAttendanceApiService.fetchSelfAttendanceData();
+      AppLogger.info("✅ Fetched ${data.length} self-attendance_only record(s)");
 
       if (data.isNotEmpty) {
         final firstRecord = data.first;
         AppLogger.info("📦 First record: $firstRecord");
+
+        // Direct field logs
         AppLogger.info("➡️ EmployeeName: ${firstRecord.employeeName}");
         AppLogger.info("➡️ Designation: ${firstRecord.designationName}");
         AppLogger.info("➡️ EmpAttendanceId: ${firstRecord.empAttendanceId}");
@@ -260,48 +263,54 @@ class _SelfAttendanceScreenState extends State<SelfAttendanceScreen> {
         AppLogger.info("➡️ inDocumentPath: ${firstRecord.inDocumentPath}");
         AppLogger.info("➡️ outDocumentPath: ${firstRecord.outDocumentPath}");
 
-
-        final empAttendanceIdStr = firstRecord.empAttendanceId;
-        final inTime = firstRecord.inTime;
-        //final inTime = firstRecord.inTime;
-        final outTime = firstRecord.outTime;
+        // Extract fields
+        final empAttendanceIdStr = firstRecord.empAttendanceId.toString();
+        final inTimeStr = firstRecord.inTime;
+        final outTimeStr = firstRecord.outTime;
         final inDocumentPath = firstRecord.inDocumentPath;
         final outDocumentPath = firstRecord.outDocumentPath;
 
-        // Check if both inTime and outTime are not null
-        final bool shouldHideSlider = inTime != null && outTime != null;
+        // Format inTime and outTime (string to HH:mm:ss)
+        String? formattedInTime;
+        if (inTimeStr != null) {
+          final parsedInTime = DateTime.tryParse(inTimeStr);
+          formattedInTime = parsedInTime != null
+              ? DateFormat('HH:mm:ss').format(parsedInTime)
+              : null;
+        }
 
-        // Convert milliseconds to Duration for inTime and outTime
-        String formatTimeFromMilliseconds(int milliseconds) {
+        String? formattedOutTime;
+        if (outTimeStr != null) {
+          final parsedOutTime = DateTime.tryParse(outTimeStr);
+          formattedOutTime = parsedOutTime != null
+              ? DateFormat('HH:mm:ss').format(parsedOutTime)
+              : null;
+        }
+
+        // Format PresentHours (milliseconds to HH:mm:ss)
+        String formatDuration(int milliseconds) {
           final duration = Duration(milliseconds: milliseconds);
           final hours = duration.inHours.toString().padLeft(2, '0');
-          final minutes =
-              duration.inMinutes.remainder(60).toString().padLeft(2, '0');
-          final seconds =
-              duration.inSeconds.remainder(60).toString().padLeft(2, '0');
+          final minutes = (duration.inMinutes % 60).toString().padLeft(2, '0');
+          final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
           return "$hours:$minutes:$seconds";
         }
 
-        // Convert DateTime to String if inTime or outTime are not null
-        String? formattedInTime =
-            inTime != null ? DateFormat('HH:mm:ss').format(inTime) : null;
-        String? formattedOutTime =
-            outTime != null ? DateFormat('HH:mm:ss').format(outTime) : null;
+        String totalHoursFormatted = '00:00:00';
+        if (firstRecord.presentHours != null) {
+          totalHoursFormatted = formatDuration(firstRecord.presentHours!);
+        }
 
-        // Check if presentHours is non-zero
+        // Determine attendance_only status
         final attendanceStatus = firstRecord.presentHours != null &&
-                firstRecord.presentHours!.inMinutes > 0
+            firstRecord.presentHours! > 0
             ? 'Present'
             : 'Absent';
-        final attendanceDate = DateFormat('yyyy-MM-dd')
-            .format(DateTime.now()); // Assuming today for attendance date
 
-        // Format totalHours without milliseconds
-        final totalMilliseconds = firstRecord.presentHours?.inMilliseconds ?? 0;
-        final totalHoursFormatted = formatDuration(totalMilliseconds);
+        final attendanceDate =
+        DateFormat('yyyy-MM-dd').format(DateTime.now()); // Assuming today's date
 
-
-        // ✅ Update global state variables with formatted strings
+        // Update global state
         final state = GlobalState();
         state.checkInTime.value = formattedInTime;
         state.checkOutTime.value = formattedOutTime;
@@ -312,6 +321,7 @@ class _SelfAttendanceScreenState extends State<SelfAttendanceScreen> {
         state.totalHours.value = totalHoursFormatted;
         state.attendanceId.value = empAttendanceIdStr;
 
+        // Save empAttendanceId securely
         final empAttendanceId = int.tryParse(empAttendanceIdStr);
         if (empAttendanceId != null) {
           final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
@@ -320,26 +330,24 @@ class _SelfAttendanceScreenState extends State<SelfAttendanceScreen> {
           AppLogger.info(
               "💾 Stored empAttendanceId: $empAttendanceId under key: $storageKey");
 
-           //ref.read(empAttendanceIdProvider.notifier).state = empAttendanceId;
-          AppLogger.info(
-              "🟢 Updated provider with empAttendanceId: $empAttendanceId");
+          // Update your provider here if needed
+          // ref.read(empAttendanceIdProvider.notifier).state = empAttendanceId;
         } else {
           _error = "❌ Invalid empAttendanceId format: $empAttendanceIdStr";
           AppLogger.error(_error!);
         }
-
-        // ref.read(selfAttendanceDataProvider.notifier).state = data;
       } else {
-        AppLogger.warn("⚠️ No self-attendance records found.");
+        AppLogger.warn("⚠️ No self-attendance_only records found.");
       }
     } catch (e) {
-      _error = "❌ Error fetching attendance data: ${e.toString()}";
+      _error = "❌ Error fetching attendance_only data: ${e.toString()}";
       AppLogger.error(_error!);
     } finally {
       setState(() => _isLoading = false);
       AppLogger.info("📴 Data fetch complete. isLoading = false.");
     }
   }
+
 
   Future<void> _refreshAttendanceData() async {
     AppLogger.info("🔄 Refresh triggered...");
@@ -669,8 +677,8 @@ class _CheckInButtonState extends ConsumerState<CheckInButton> {
   Future<void> determineCheckInStatusFromApi() async {
     try {
       AppLogger.info(
-          "📡 Checking latest attendance record to determine slider state...");
-      final data = await AttendanceApiService.fetchSelfAttendanceData();
+          "📡 Checking latest attendance_only record to determine slider state...");
+      final data = await SelfAttendanceApiService.fetchSelfAttendanceData();
 
 
       if (data.isNotEmpty) {
@@ -703,7 +711,7 @@ class _CheckInButtonState extends ConsumerState<CheckInButton> {
         }
       } else {
         AppLogger.warn(
-            "⚠️ No attendance records found. Defaulting to Check-In.");
+            "⚠️ No attendance_only records found. Defaulting to Check-In.");
       }
     } catch (e) {
       AppLogger.error("❌ Error determining check-in status: ${e.toString()}");
@@ -1012,7 +1020,7 @@ class _CheckInButtonState extends ConsumerState<CheckInButton> {
               outerColor: const Color(0xff7339c8),
               reversed: isFinished,
               sliderButtonIcon: SvgPicture.asset(
-                'assets/icons/attendance/user-tick.svg',
+                'assets/icons/attendance_only/user-tick.svg',
                 color: AppColors.primaryBlueFont,
                 height: 24.0,
                 width: 24.0,
