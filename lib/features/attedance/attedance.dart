@@ -15,6 +15,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/network/logger.dart';
 import '../../../routes/app_routes.dart';
 import '../../../theme/themes/app_themes.dart';
+import '../../core/constants/font_styles.dart';
 import '../../core/services/attendance/attendance_api_service.dart';
 import '../../core/utils/secure_storage_util.dart';
 import '../self_attendance/emp_self_attendance.dart';
@@ -416,109 +417,6 @@ class _SelfAttendanceScreenState extends ConsumerState<SelfAttendanceScreen> {
               child: Column(
                 children: [
                   MapScreen(),
-                  // Stack(
-                  //   children: [
-                  //     Container(
-                  //       decoration: BoxDecoration(
-                  //           boxShadow: AppDefaults.boxShadow,
-                  //           borderRadius: AppDefaults.borderRadius),
-                  //       height: MediaQuery.of(context).size.height *
-                  //           0.25, // Set a fixed height
-                  //       width: double.infinity,
-                  //       child: GoogleMap(
-                  //         initialCameraPosition: CameraPosition(
-                  //           target: _currentPosition,
-                  //           zoom: 14,
-                  //         ),
-                  //         markers: {
-                  //           Marker(
-                  //             markerId: const MarkerId("currentLocation"),
-                  //             position: _currentPosition,
-                  //             infoWindow: const InfoWindow(title: "Your Location"),
-                  //           ),
-                  //         },
-                  //         myLocationEnabled: true,
-                  //         myLocationButtonEnabled: true,
-                  //         onMapCreated: (GoogleMapController controller) {
-                  //           _controller = controller;
-                  //         },
-                  //       ),
-                  //     ),
-                  //     Positioned(
-                  //       bottom: 10,
-                  //       left: 20,
-                  //       right: 20,
-                  //       child: Container(
-                  //         padding: const EdgeInsets.all(12),
-                  //         decoration: BoxDecoration(
-                  //             color: Colors.white,
-                  //             borderRadius: BorderRadius.circular(8),
-                  //             boxShadow: AppDefaults.boxShadow),
-                  //         child: Text(
-                  //           _currentAddress,
-                  //           textAlign: TextAlign.center,
-                  //           style: const TextStyle(
-                  //               fontSize: 12, fontWeight: FontWeight.bold),
-                  //         ),
-                  //       ),
-                  //     ),
-                  //   ],
-                  // ),
-
-                  // Column(
-                  //   children: [
-                  //     TextField(
-                  //       controller: _employeeNameController,
-                  //       decoration: InputDecoration(labelText: 'Employee Name'),
-                  //       enabled: false, // Optional, make it read-only
-                  //     ),
-                  //     TextField(
-                  //       controller: _designationController,
-                  //       decoration: InputDecoration(labelText: 'Designation'),
-                  //       enabled: false, // Optional, make it read-only
-                  //     ),
-                  //     TextField(
-                  //       controller: _empAttendanceIdController,
-                  //       decoration: InputDecoration(labelText: 'Employee Attendance ID'),
-                  //       enabled: false, // Optional, make it read-only
-                  //     ),
-                  //     TextField(
-                  //       controller: _employeeCodeController,
-                  //       decoration: InputDecoration(labelText: 'Employee Code'),
-                  //       enabled: false, // Optional, make it read-only
-                  //     ),
-                  //     TextField(
-                  //       controller: _inTimeController,
-                  //       decoration: InputDecoration(labelText: 'In Time'),
-                  //       enabled: false, // Optional, make it read-only
-                  //     ),
-                  //     TextField(
-                  //       controller: _outTimeController,
-                  //       decoration: InputDecoration(labelText: 'Out Time'),
-                  //       enabled: false, // Optional, make it read-only
-                  //     ),
-                  //     TextField(
-                  //       controller: _presentHoursController,
-                  //       decoration: InputDecoration(labelText: 'Present Hours'),
-                  //       enabled: false, // Optional, make it read-only
-                  //     ),
-                  //     TextField(
-                  //       controller: _attendanceStatusController,
-                  //       decoration: InputDecoration(labelText: 'Attendance Status'),
-                  //       enabled: false, // Optional, make it read-only
-                  //     ),
-                  //     TextField(
-                  //       controller: _inDocumentPathController,
-                  //       decoration: InputDecoration(labelText: 'Check-in Image URL'),
-                  //       enabled: false,
-                  //     ),
-                  //     TextField(
-                  //       controller: _outDocumentPathController,
-                  //       decoration: InputDecoration(labelText: 'Check-out Image URL'),
-                  //       enabled: false,
-                  //     ),
-                  //   ],
-                  // ),
                   SizedBox(height: 16),
                   _buildTopCard(context, ref, checkInOutState, checkInOutNotifier),
                   SizedBox(height: 16),
@@ -642,7 +540,7 @@ class _SelfAttendanceScreenState extends ConsumerState<SelfAttendanceScreen> {
                     style: TextStyle(fontSize: 16)), // live clock
               ],
             ),
-            SizedBox(height: 16),
+            SizedBox(height: 30),
             // Time difference display (separate hours, minutes, and seconds)
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -674,20 +572,26 @@ class _SelfAttendanceScreenState extends ConsumerState<SelfAttendanceScreen> {
                 ),
               ],
             ),
-
+            SizedBox(height: 20),
             Text("Your working hour’s will be calculated here",
-                style: TextStyle(fontSize: 14)),
-            SizedBox(height: 16),
+              style: FontStyles.semiBold600.copyWith(
+                color: AppColors.primaryBlackFontWithOpps60,
+                fontSize: 14,
+              ),
+            ),
+            SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: checkInOutState.checkInTime == null
                   ? () => checkInOutNotifier.checkIn()
                   : checkInOutState.checkOutTime == null
                       ? () => checkInOutNotifier.checkOut()
                       : null,
-              icon: Icon(Icons.arrow_forward),
               label: Text(
                 checkInOutState.checkInTime == null ? "Check In" : "Check Out",
-                style: TextStyle(fontSize: 18),
+                style: FontStyles.semiBold600.copyWith(
+                  color: AppColors.white,
+                  fontSize: 16,
+                ),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.deepPurple,
@@ -795,9 +699,8 @@ class _SelfAttendanceScreenState extends ConsumerState<SelfAttendanceScreen> {
   Widget _buildInOutCard(checkInOutState) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white, // Set the color of the container
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(12),
-        //borderRadius: BorderRadius.circular(16), // Set the corner radius
         boxShadow: [
           BoxShadow(
             color: Colors.indigo.withOpacity(0.2),
@@ -808,41 +711,46 @@ class _SelfAttendanceScreenState extends ConsumerState<SelfAttendanceScreen> {
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: _buildTimeRow(
+          if (checkInOutState.checkInTime != null)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: _buildTimeRow(
                 'assets/icons/attendance/white-clock.svg',
                 "In Time",
                 checkInOutState.checkInTime,
-              checkInOutState.checkInImage),
-          ),
-          // Divider(),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: _buildTimeRow(
+                checkInOutState.checkInImage,
+              ),
+            ),
+          if (checkInOutState.checkOutTime != null)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: _buildTimeRow(
                 'assets/icons/attendance/white-clock.svg',
                 "Out Time",
                 checkInOutState.checkOutTime,
-                checkInOutState.checkOutImage),
-          ),
-          Container(
-            height: 50,
-            width: double.infinity,
-            // color: AppColors.primaryWhitebg,
-            decoration: BoxDecoration(
-              color: AppColors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(5), // Rounded bottom-left corner
-                bottomRight: Radius.circular(5), // Rounded bottom-right corner
+                checkInOutState.checkOutImage,
               ),
             ),
-            child: _buildPresentHours(checkInOutState),
-          ),
+          if (checkInOutState.checkInTime != null && checkInOutState.checkOutTime != null)
+            Container(
+              height: 50,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: AppColors.white.withOpacity(0.1),
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(5),
+                  bottomRight: Radius.circular(5),
+                ),
+              ),
+              child: _buildPresentHours(checkInOutState),
+            ),
         ],
       ),
     );
   }
+
 
 //   Widget _buildTimeRow(String icon, String label, DateTime? time, File? image) {
 //         // Printing the prefilled data to the console
@@ -1161,11 +1069,19 @@ class _SelfAttendanceScreenState extends ConsumerState<SelfAttendanceScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              Text(label,
+                style: FontStyles.semiBold600.copyWith(
+                  color: AppColors.primaryBlackFontWithOpps60,
+                  fontSize: 12,
+                ),
+              ),
               SizedBox(height: 4),
               Text(
                 DateFormat('hh:mm:ss a').format(time),
-                style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                style: FontStyles.bold700.copyWith(
+                  color: AppColors.primaryBlackFont,
+                  fontSize: 12,
+                ),
               ),
             ],
           ),
@@ -1437,7 +1353,11 @@ class _SelfAttendanceScreenState extends ConsumerState<SelfAttendanceScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text("Current Attendance",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          style: FontStyles.semiBold600.copyWith(
+            color: AppColors.primaryBlackFont,
+            fontSize: 16,
+          ),
+        ),
         SizedBox(height: 8),
         Container(
           width: double.infinity,
@@ -1468,15 +1388,27 @@ class _SelfAttendanceScreenState extends ConsumerState<SelfAttendanceScreen> {
                 // Optional: Adjust padding if necessary
                 child: Row(
                   children: [
-                    Icon(Icons.calendar_today,
-                        color: Colors.purple, size: 18.sp),
+                    SvgPicture.asset(
+                      'assets/icons/attendance/blue-calendar.svg',
+                      height: 20, // ✅ Adjust size as needed
+                      width: 20,
+                      // color:  AppColors.primaryBlue,
+                      // colorFilter: const ColorFilter.mode(
+                      //   Colors.grey,
+                      //   BlendMode.srcIn,
+                      // ), // ✅ Set color
+                    ),
                     SizedBox(width: 8.w),
 
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 6),
                       child: Text(
                           DateFormat('dd/MM/yyyy').format(DateTime.now()),
-                          style: TextStyle(fontSize: 16)),
+                        style: FontStyles.semiBold600.copyWith(
+                          color: AppColors.primaryBlackFont,
+                          fontSize: 14,
+                        ),
+                      ),
                     ),
                     const Spacer(),
                     // Chip(
@@ -1509,12 +1441,22 @@ class _SelfAttendanceScreenState extends ConsumerState<SelfAttendanceScreen> {
                           horizontal: 7, vertical: 5),
                       child: Column(children: [
                         Text("In Time",
-                            style: TextStyle(fontWeight: FontWeight.bold)),
+                          style: FontStyles.semiBold600.copyWith(
+                            color: AppColors.primaryLightGrayFont,
+                            fontSize: 12,
+                          ),
+                        ),
                         SizedBox(height: 4),
-                        Text(checkInOutState.checkInTime != null
-                            ? DateFormat('HH:mm')
-                                .format(checkInOutState.checkInTime!)
-                            : '--:--'),
+                        Text(
+                          checkInOutState.checkInTime != null
+                              ? DateFormat('HH:mm').format(checkInOutState.checkInTime!)
+                              : '--:--',
+                          style: FontStyles.bold700.copyWith(
+                            color: AppColors.primaryBlackFont,
+                            fontSize: 12,
+                          ),
+                        ),
+
                       ]),
                     ),
                     Container(
@@ -1537,12 +1479,21 @@ class _SelfAttendanceScreenState extends ConsumerState<SelfAttendanceScreen> {
                           horizontal: 4, vertical: 5),
                       child: Column(children: [
                         Text("Out Time",
-                            style: TextStyle(fontWeight: FontWeight.bold)),
+                          style: FontStyles.bold700.copyWith(
+                            color: AppColors.primaryLightGrayFont,
+                            fontSize: 12,
+                          ),
+                        ),
                         SizedBox(height: 4),
                         Text(checkInOutState.checkOutTime != null
                             ? DateFormat('HH:mm')
                                 .format(checkInOutState.checkOutTime!)
-                            : '--:--'),
+                            : '--:--',
+                          style: FontStyles.bold700.copyWith(
+                            color: AppColors.primaryBlackFont,
+                            fontSize: 12,
+                          ),
+                        ),
                       ]),
                     ),
                     Container(
@@ -1565,10 +1516,19 @@ class _SelfAttendanceScreenState extends ConsumerState<SelfAttendanceScreen> {
                           horizontal: 14, vertical: 5),
                       child: Column(children: [
                         Text("Total Hrs",
-                            style: TextStyle(fontWeight: FontWeight.bold)),
+                          style: FontStyles.semiBold600.copyWith(
+                            color: AppColors.primaryLightGrayFont,
+                            fontSize: 12,
+                          ),
+                        ),
                         SizedBox(height: 4),
                         Text(checkInOutState.timeDifference
-                            .replaceAll(":", " : ")),
+                            .replaceAll(":", " : "),
+                          style: FontStyles.bold700.copyWith(
+                            color: AppColors.primaryBlackFont,
+                            fontSize: 12,
+                          ),
+                        ),
                       ]),
                     ),
                   ],

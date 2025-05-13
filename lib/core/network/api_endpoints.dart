@@ -1,6 +1,6 @@
 /// Centralized API endpoints for better management and consistency
 class ApiEndpoints {
- // static const String baseUrl = "http://192.168.1.12:1015/api";  // ✅ Correct IP
+ // static const String baseUrl = "http://192.168.1.13:1015/api";  // ✅ Correct IP
   static const String baseUrl = "http://13.233.153.154:2155/api";  // ✅ Correct IP
 
   /// Authentication Endpoints
@@ -50,10 +50,24 @@ class ApiEndpoints {
  /// Fetch Only Self Attendance Details Data
   static const String fetchOnlySelfAttendanceListData = "$baseUrl/AttendanceOnly/Fetch-AttendanceOnly-List";
 
-
-
   /// Fetch User Profile Account Details Data
   static const String fetchUserAccountDetails = "$baseUrl/UserProfile/Get-UserProfile-Data";
 
+
+  /// Fuel Purchase
+  /// Fetch Fuel Purchase List
+  static const String fetchFuelPurchaseList = "$baseUrl/FuelPurchase/Fetch-All-FuelPurchase";
+
+  /// Add Fuel Purchase
+  static const String addFuelPurchase = "$baseUrl/FuelPurchase/FuelPurchase-Add";
+
+  /// Fetch Edit Get Data For Fuel Purchase
+  static const String fetchEditFuelPurchaseData = "$baseUrl/FuelPurchase/Get-FuelPurchase-Data";
+
+  /// Edit Fuel Purchase
+  static const String editFuelPurchase = "$baseUrl/FuelPurchase/Edit-FuelPurchase";
+
+  /// Delete Fuel Purchase
+  static const String deleteFuelPurchase = "$baseUrl/FuelPurchase/Delete-FuelPurchase";
 
 }

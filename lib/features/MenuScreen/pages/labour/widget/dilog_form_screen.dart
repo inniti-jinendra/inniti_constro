@@ -652,6 +652,47 @@ class LabourFormFields {
       ),
 
       SizedBox(height: 15),
+      // Row(
+      //   children: [
+      //     Expanded(
+      //       child: CustomFormWidgets.buildTextField(
+      //         label: "Mobile Number",
+      //         hint: "Mobile Number",
+      //         controller: mobileController,
+      //         keyboardType: TextInputType.phone,
+      //         validator: (value) {
+      //           if (value == null || value.trim().isEmpty)
+      //             return "Mobile number is required";
+      //           if (!RegExp(r'^[0-9]{10}$').hasMatch(value))
+      //             return "Enter a valid 10-digit mobile number";
+      //           return null;
+      //         },
+      //       ),
+      //     ),
+      //     SizedBox(width: 10),
+      //     Expanded(
+      //       child: CustomFormWidgets.buildTextField(
+      //         label: "Aadhaar ID",
+      //         hint: "Aadhaar Number",
+      //         controller: idController,
+      //         keyboardType: TextInputType.phone,
+      //         validator: (value) {
+      //           // Check if the field is empty
+      //           if (value == null || value.isEmpty) {
+      //             return "ID is required";
+      //           }
+      //           // Aadhaar card number validation
+      //           final RegExp regex = RegExp(r'^[2-9]{1}[0-9]{11}$');
+      //           if (!regex.hasMatch(value)) {
+      //             return 'Please enter a valid 12-digit Aadhaar number';
+      //           }
+      //           return null; // Validation passed
+      //         },
+      //       ),
+      //     ),
+      //   ],
+      // ),
+
       Row(
         children: [
           Expanded(
@@ -661,6 +702,7 @@ class LabourFormFields {
               controller: mobileController,
               keyboardType: TextInputType.phone,
               validator: (value) {
+                // Mobile number validation
                 if (value == null || value.trim().isEmpty)
                   return "Mobile number is required";
                 if (!RegExp(r'^[0-9]{10}$').hasMatch(value))
@@ -675,23 +717,24 @@ class LabourFormFields {
               label: "Aadhaar ID",
               hint: "Aadhaar Number",
               controller: idController,
-              keyboardType: TextInputType.phone,
+              keyboardType: TextInputType.number,
               validator: (value) {
-                // Check if the field is empty
+                // Aadhaar number validation
                 if (value == null || value.isEmpty) {
                   return "ID is required";
                 }
-                // Aadhaar card number validation
+                // Aadhaar validation regex: starts with 2-9 followed by 11 digits
                 final RegExp regex = RegExp(r'^[2-9]{1}[0-9]{11}$');
                 if (!regex.hasMatch(value)) {
                   return 'Please enter a valid 12-digit Aadhaar number';
                 }
-                return null; // Validation passed
+                return null;
               },
             ),
           ),
         ],
       ),
+
       SizedBox(height: 10),
       Row(
         children: [

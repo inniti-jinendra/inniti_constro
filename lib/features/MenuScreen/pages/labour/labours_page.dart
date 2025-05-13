@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:inniti_constro/core/models/system/dropdown_item.dart';
 import 'package:inniti_constro/core/network/api_endpoints.dart';
@@ -12,6 +13,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/font_styles.dart';
 import '../../../../core/models/labour/labor.dart';
 import 'package:http/http.dart' as http;
 import '../../../../core/services/labour/labour_api_service.dart';
@@ -54,6 +56,8 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
   TextEditingController labourController = TextEditingController();
   TextEditingController contractorController = TextEditingController();
   TextEditingController mobileController = TextEditingController();
+  bool isFilterApplied = false;
+
 
   // @override
   // void initState() {
@@ -249,7 +253,7 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
     });
   }
 
-  void _showFilterBottomSheet(BuildContext context) {
+  void  _showFilterBottomSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -260,7 +264,7 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
         return Consumer(
           builder: (context, ref, child) {
             final labourNotifier = ref.read(labourListProvider.notifier);
-
+            final isFilterAppliedNotifier = ref.read(isFilterAppliedProvider.notifier);
             // Initialize selectedCategory with an empty string
             String selectedCategory = '';
 
@@ -271,131 +275,158 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
                     bottom: MediaQuery.of(context).viewInsets.bottom,
                   ),
                   child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0x665B21B1), // Semi-transparent purple shadow
+                          blurRadius: 14,
+                          spreadRadius: -6,
+                          offset: Offset(0, 0),
+                        ),
+                      ],
+                    ),
                     padding: const EdgeInsets.all(16),
                     height: 450,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Cancel & Search Buttons
+                        Expanded(
+                          child: SingleChildScrollView(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+
+
+
+
+
+                                Text(
+                                  "Labour Name",
+                                  style: FontStyles.semiBold600.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primaryBlackFont,
+                                  ),
+                                ),
+                                const SizedBox(height: 5),
+                                TextField(
+                                  controller: labourController,
+                                  decoration: InputDecoration(
+                                    filled: true,
+                                    fillColor: AppColors.primaryWhitebg,
+                                    labelText: "Labour Name",
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  "Contractor Name",
+                                  style: FontStyles.semiBold600.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primaryBlackFont,
+                                  ),
+                                ),
+                                const SizedBox(height: 5),
+                                TextField(
+                                  controller: contractorController,
+                                  decoration: InputDecoration(
+                                    filled: true,
+                                    fillColor: AppColors.primaryWhitebg,
+                                    labelText: "Contractor Name",
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+
+                                ReusableDropdownCategory(
+
+                                    label: "Select Labour Category",
+                                    initialValue: "Electrician",
+                                    onChanged: (name, id) {
+                                      setState(() {
+                                        selectedCategory = id ?? '';
+                                      });
+                                    },
+                                  ),
+
+
+
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text(
-                                'CANCEL',
-                                style: TextStyle(color: Colors.red),
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () {
+
+                                  if (labourController.text.isEmpty &&
+                                      contractorController.text.isEmpty &&
+                                      selectedCategory.isEmpty) {
+                                    return;
+                                  }
+
+                                  // Apply filters and set flag
+                                  labourNotifier.filterLabours(
+                                    labourName: labourController.text,
+                                    contractorName: contractorController.text,
+                                    labourCategory: selectedCategory,
+                                  );
+                                  isFilterAppliedNotifier.state = true;
+                                  Navigator.pop(context);
+                                },
+                                style: ElevatedButton.styleFrom(
+                                 // backgroundColor: Color(0xffebcfcf),
+                                  backgroundColor: AppColors.primaryBlue,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'SEARCH',
+                                 // style: TextStyle(color: Color(0xffb55252)),
+                                  style: TextStyle(color: AppColors.white),
+                                ),
                               ),
                             ),
-                            TextButton(
-                              onPressed: () {
-                                // Check if at least one filter is provided
-                                if (labourController.text.isEmpty &&
-                                    contractorController.text.isEmpty &&
-                                    selectedCategory.isEmpty) {
-                                  return; // No action if no filter is provided
-                                }
+                            const SizedBox(width: 20),
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    labourController.clear();
+                                    contractorController.clear();
+                                    selectedCategory = '';
+                                    isFilterApplied = false;
+                                  });
+                                  labourNotifier.clearFilters();
 
-                                // Apply the filter with the selectedCategory
-                                labourNotifier.filterLabours(
-                                  labourName: labourController.text,
-                                  contractorName: contractorController.text,
-                                  labourCategory: selectedCategory,
-                                );
+                                  isFilterAppliedNotifier.state = false;
 
-                                Navigator.pop(context);
-                              },
-                              child: const Text(
-                                'SEARCH',
-                                style: TextStyle(color: Colors.blue),
+                                  Navigator.pop(context);
+                                },
+                                style: ElevatedButton.styleFrom(
+                                 // backgroundColor: AppColors.primaryBlue,
+                                  backgroundColor: Color(0xffebcfcf),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'CLEAR FILTERS',
+                                  //style: TextStyle(color: AppColors.white),
+                                  style: TextStyle(color: Color(0xffb55252)),
+                                ),
                               ),
                             ),
                           ],
-                        ),
-                        const SizedBox(height: 10),
-
-                        // Labour Name Field
-                        TextField(
-                          controller: labourController,
-                          decoration: InputDecoration(
-                            labelText: "Labour Name",
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-
-                        // Contractor Name Field
-                        TextField(
-                          controller: contractorController,
-                          decoration: InputDecoration(
-                            labelText: "Contractor Name",
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-
-                        // DropdownButtonFormField<String>(
-                        //   value: selectedCategory.isEmpty ? null : selectedCategory,
-                        //   decoration: InputDecoration(
-                        //     labelText: "Labour Category",
-                        //     border: OutlineInputBorder(
-                        //       borderRadius: BorderRadius.circular(8),
-                        //     ),
-                        //   ),
-                        //   items: isLoading
-                        //       ? [DropdownMenuItem(value: null, child: Text('Loading...'))]
-                        //       : categories.map((categoryMap) {
-                        //     return DropdownMenuItem(
-                        //       value: categoryMap['value'],
-                        //       child: Text(categoryMap['text']!),
-                        //     );
-                        //   }).toList(),
-                        //   onChanged: (value) {
-                        //     if (value != null) {
-                        //       setState(() {
-                        //         selectedCategory = value;
-                        //       });
-                        //     }
-                        //   },
-                        // ),
-
-                        ReusableDropdownCategory(
-                          label: "Select Labour Category",
-                          initialValue: "Electrician",
-                          // Preselect value (optional)
-                          onChanged: (name, id) {
-                            print("Selected Category: $name (ID: $id)");
-                            setState(() {
-                              selectedCategory = id ?? '';
-                            });
-                          },
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // Clear Filters Button
-                        ElevatedButton(
-                          onPressed: () {
-                            setState(() {
-                              labourController.clear();
-                              contractorController.clear();
-                              selectedCategory = ''; // Clear selected category
-                            });
-                            labourNotifier.clearFilters();
-
-                            Navigator.pop(context);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.grey[300],
-                          ),
-                          child: const Text(
-                            'CLEAR FILTERS',
-                            style: TextStyle(color: Colors.black),
-                          ),
                         ),
                       ],
                     ),
@@ -403,6 +434,8 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
                 );
               },
             );
+
+
           },
         );
       },
@@ -709,6 +742,25 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
               message: "Commission is required.", isError: true);
           return;
         }
+
+        // ✅ Conditionally validate Mobile Number only if it's entered
+        String mobileNumber = mobileController.text.trim();
+        if (mobileNumber.isNotEmpty &&
+            !RegExp(r'^[0-9]{10}$').hasMatch(mobileNumber)) {
+          CustomSnackbar.show(context,
+              message: "Please enter a valid 10-digit mobile number.", isError: true);
+          return;
+        }
+
+// ✅ Conditionally validate Aadhaar Number only if it's entered
+        String aadhaarNumber = idController.text.trim();
+        if (aadhaarNumber.isNotEmpty &&
+            !RegExp(r'^[0-9]{12}$').hasMatch(aadhaarNumber)) {
+          CustomSnackbar.show(context,
+              message: "Please enter a valid 12-digit Aadhaar number.", isError: true);
+          return;
+        }
+
 
         // ✅ All validations passed — log everything (even optional)
         AppLogger.info("Form validation passed. Logging values:");
@@ -1497,6 +1549,26 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
           return;
         }
 
+        // Mobile Number Validation (10 digits) EDIT
+        // ✅ Conditionally validate Mobile Number only if it's entered
+        String mobileNumber = mobileController.text.trim();
+        if (mobileNumber.isNotEmpty &&
+            !RegExp(r'^[0-9]{10}$').hasMatch(mobileNumber)) {
+          CustomSnackbar.show(context,
+              message: "Please enter a valid 10-digit mobile number.", isError: true);
+          return;
+        }
+
+        // ✅ Conditionally validate Aadhaar Number only if it's entered EDIT
+        String aadhaarNumber = idController.text.trim();
+        if (aadhaarNumber.isNotEmpty &&
+            !RegExp(r'^[0-9]{12}$').hasMatch(aadhaarNumber)) {
+          CustomSnackbar.show(context,
+              message: "Please enter a valid 12-digit Aadhaar number.", isError: true);
+          return;
+        }
+
+
         // ✅ All validations passed — log everything (even optional)
         AppLogger.info("Form validation passed Edited. Logging values:");
         AppLogger.info("First Name: ${firstNameController.text}");
@@ -1847,6 +1919,8 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
     final isLoading = labourNotifier.isLoading;
     final laboursList = ref.watch(labourListProvider);
     filteredLabours = List.from(laboursList);
+    bool isFilterApplied = false;
+
 
     return Scaffold(
       appBar: AppBar(
@@ -1860,31 +1934,42 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
           children: [
             Text(
               'Labour Master',
-              style: GoogleFonts.nunitoSans(
-                fontWeight: FontWeight.w700,
-                fontSize: 18,
+              style: FontStyles.bold700.copyWith(
                 color: AppColors.primaryBlackFont,
+              fontSize: 18,
               ),
             ),
             Text(
               _projectName ?? 'No Project Selected',
-              style: GoogleFonts.nunitoSans(
-                fontWeight: FontWeight.w700,
-                fontSize: 12,
+              style: FontStyles.bold700.copyWith(
                 color: AppColors.primaryBlackFont,
+                fontSize: 12,
               ),
             ),
           ],
         ),
+
         actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: IconButton(
-              icon: Icon(Icons.filter_list_alt, color: AppColors.primaryBlue),
-              onPressed: () => _showFilterBottomSheet(context),
-            ),
+          Consumer(
+            builder: (context, ref, _) {
+              final isFilterApplied = ref.watch(isFilterAppliedProvider);
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: IconButton(
+                  icon: SvgPicture.asset(
+                    isFilterApplied ? 'assets/icons/menu-icon/filter-search-with-mg.svg' : 'assets/icons/menu-icon/filter-search-without-mg.svg',
+                    color: AppColors.primary,
+                    height: 30,
+                    width: 30,
+                  ),
+                  onPressed: () => _showFilterBottomSheet(context),
+                ),
+              );
+            },
           ),
         ],
+
+
         backgroundColor: AppColors.primaryWhitebg,
       ),
       // body: RefreshIndicator(
@@ -2274,8 +2359,10 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
                           // Labour is being deactivated, so we proceed with deletion (inactive)
                           bool result = await LabourApiService().deleteLabour(
                             labourId: labour.labourID,
-                            userId: 13125,
-                            companyCode: "CONSTRO",
+                            userId: 0,
+                            //userId: 13125,
+                            companyCode: "",
+                            //companyCode: "CONSTRO",
                           );
 
                           if (result) {

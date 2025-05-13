@@ -12,6 +12,7 @@ import '../../../../../core/network/logger.dart';
 import '../../../../../core/services/LabourAttendance/labour_attendance_api_service.dart';
 
 import '../../../../../widgets/global_loding/global_loader.dart';
+import '../../../../core/constants/font_styles.dart';
 import 'attedance_form.dart';
 import 'labor_master_attedance_modal.dart';
 
@@ -48,7 +49,7 @@ class LabourCardNew extends StatefulWidget {
 class _LabourCardState extends State<LabourCardNew> {
   @override
   Widget build(BuildContext context) {
-    print("🔍 widget.enabled: ${widget.enabled}"); // 👈 This will print true or false
+    print("🔍 widget.enabled: ${widget.enabled}");
 
     return GestureDetector(
       onTap:() async {
@@ -155,106 +156,156 @@ class _LabourCardState extends State<LabourCardNew> {
   }
 
   Widget _buildCardUI({required bool isUnavailable}) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 3),
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 20, right: 20,),
       child: Container(
-        height: 84,
+        margin: const EdgeInsets.symmetric(vertical: 8),
+
         decoration: BoxDecoration(
-          color: isUnavailable ? Colors.grey[200] :AppColors.white,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              spreadRadius: 2,
-              offset: const Offset(0, 4),
-            ),
-            BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 2,
-              offset: const Offset(0, 1),
+              color: Color(0x405B21B1), // 40 is hex for 25% opacity
+              offset: Offset(0, 0),     // Matches 0px 0px
+              blurRadius: 14,
+              spreadRadius: -6,         // Negative spread like CSS
             ),
           ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [_buildTopRow(), _buildBottomRow()],
+        child: Container(
+          height: 85,
+          decoration: BoxDecoration(
+            color: isUnavailable ? Color(0xfffafafa) :Colors.white,
+           // color: isUnavailable ? Color(0xffF8F9FA) :Colors.white,
+
+            borderRadius: BorderRadius.circular(12),
+
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildTopRow(isUnavailable),
+              _buildBottomRow()],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildTopRow() {
+  Widget _buildTopRow(bool isUnavailable) {
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.only(top: 16, left: 18),
-            child: Text(
-              widget.company,
-              style: GoogleFonts.nunitoSans(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primaryBlackFont,
-              ),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-              softWrap: false,
+            padding: const EdgeInsets.only(top: 15, left: 15),
+            // child: Text(
+            //   widget.company,
+            //   style: FontStyles.bold700.copyWith(
+            //     fontSize: 18,
+            //     color: AppColors.primaryBlackFont,
+            //   ),
+            //   overflow: TextOverflow.ellipsis,
+            //   maxLines: 1,
+            //   softWrap: false,
+            // ),
+            child:   Row(
+              children: [
+                SvgPicture.asset(
+                  'assets/icons/attendance/Profile-Check.svg',
+                  height: 16,
+                  width: 16,
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  widget.name,
+                  style: FontStyles.medium500.copyWith(
+                    fontSize: 12,
+                    color: AppColors.primaryBlackFontWithOpps60,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    widget.labourCategory,
+                    style: FontStyles.bold700.copyWith(
+                      fontSize: 12,
+                      color: AppColors.primaryBlueFont,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
-        Row(
+        Column(
           children: [
-            Container(
-              margin: const EdgeInsets.all(10.0),
-              height: 20, // Increased from 20
-              width: 60,  // Optional: increase width for longer text
-              decoration: BoxDecoration(
-                color: AppColors.cardgreenlight,
-                borderRadius: BorderRadius.circular(3),
-              ),
-              alignment: Alignment.center, // This alone is enough
-              child: Text(
-                '${_getAttendanceEmoji(widget.attendance)} ${widget.attendance}',
-                style: GoogleFonts.nunitoSans(
-                  fontSize: 12,
-                  color: const Color(0xff07614A),
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
 
+
+
+            // Container(
+            //   height: 40,
+            //   width: 40,
+            //   alignment: Alignment.center,
+            //   decoration: BoxDecoration(
+            //     color: AppColors.primaryWhitebg,
+            //     borderRadius: const BorderRadius.only(
+            //       topRight: Radius.circular(12),
+            //       bottomLeft: Radius.circular(12),
+            //     ),
+            //     // boxShadow: [
+            //     //   BoxShadow(
+            //     //     color: Colors.black.withOpacity(0.1),
+            //     //     blurRadius: 4,
+            //     //     spreadRadius: 1,
+            //     //     offset: const Offset(0, 2),
+            //     //   ),
+            //     // ],
+            //   ),
+            //   child: Text(
+            //     widget.id,
+            //     style: GoogleFonts.nunitoSans(
+            //       fontSize: 10,
+            //       fontWeight: FontWeight.bold,
+            //       color: AppColors.primaryBlueFont,
+            //     ),
+            //   ),
+            // ),
             Container(
-              height: 38,
-              width: 38,
+              // height: 38,
+              // // ✅ Slightly smaller for better proportion
+              // width: 38,
               alignment: Alignment.center,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: AppColors.primaryWhitebg,
-                borderRadius: const BorderRadius.only(
+                borderRadius: BorderRadius.only(
                   topRight: Radius.circular(12),
                   bottomLeft: Radius.circular(12),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 4,
-                    spreadRadius: 1,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
               ),
-              child: Text(
-                widget.id,
-                style: GoogleFonts.nunitoSans(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primaryBlueFont,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 13,
+                    vertical: 12,
+                ),
+                child: Text(
+                  widget.id,
+                  // "111",
+                  style: FontStyles.bold700.copyWith(
+                    // fontSize: 10,
+                    fontSize: 13, // ✅ Adjusted for readability
+                     color: AppColors.primaryBlueFont,
+                    //color: _isActive ? AppColors.primaryBlue : AppColors.primaryBlueWithOps60,
+                  ),
                 ),
               ),
             ),
+            SizedBox(width: 10,),
+
           ],
         ),
       ],
@@ -263,48 +314,88 @@ class _LabourCardState extends State<LabourCardNew> {
 
   Widget _buildBottomRow() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              SvgPicture.asset(
-                'assets/icons/user-icon.svg',
-                height: 16,
-                width: 16,
-                colorFilter: const ColorFilter.mode(
-                  AppColors.primaryBlue,
-                  BlendMode.srcIn,
-                ),
-              ),
-              const SizedBox(width: 6),
-              Text(
-                widget.name,
-                style: GoogleFonts.nunitoSans(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
+          // Company name (left side)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Text(
+                _truncateWithEllipsis(widget.company, 20),
+                style: FontStyles.bold700.copyWith(
+                  fontSize: 16,
                   color: AppColors.primaryBlackFont,
                 ),
-                overflow: TextOverflow.ellipsis,
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  widget.labourCategory,
-                  style: GoogleFonts.nunitoSans(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primaryBlackFont,
-                  ),
+
+          ),
+
+          const SizedBox(width: 10),
+
+          // Attendance status container (right side)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+              decoration: BoxDecoration(
+                color: _getAttendanceBackgroundColor(widget.attendance),
+                borderRadius: BorderRadius.circular(3),
+              ),
+              child: Text(
+                _getAttendanceEmoji(widget.attendance),
+                style: GoogleFonts.nunitoSans(
+                  fontSize: 10,
+                  color: _getAttendanceTextColor(widget.attendance),
                 ),
+                textAlign: TextAlign.center,
               ),
-            ],
+            ),
           ),
         ],
       ),
     );
   }
+
+// 🔧 Helper methods
+  Color _getAttendanceBackgroundColor(String? attendance) {
+    switch (attendance) {
+      case "A":
+      case "Absent":
+        return const Color(0xFFFFE9E9);
+      case "P":
+      case "Present":
+        return const Color(0xFFC8FAE8);
+      case "U":
+      case "Unavailable":
+        return const Color(0xFFFFC067);
+      default:
+        return Colors.grey.shade200;
+    }
+  }
+
+  Color _getAttendanceTextColor(String? attendance) {
+    switch (attendance) {
+      case "A":
+      case "Absent":
+        return Colors.red;
+      case "P":
+      case "Present":
+        return Colors.green;
+      case "U":
+      case "Unavailable":
+        return Colors.orange;
+      default:
+        return Colors.grey.shade600;
+    }
+  }
+
+  String _truncateWithEllipsis(String text, int maxLength) {
+    if (text.length <= maxLength) return text;
+    return '${text.substring(0, maxLength)}...';
+  }
+
 
 
 

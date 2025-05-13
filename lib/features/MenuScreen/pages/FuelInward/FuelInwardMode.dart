@@ -1,0 +1,2 @@
+
+enum FuelInwardMode { add, edit }

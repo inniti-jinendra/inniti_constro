@@ -120,6 +120,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:inniti_constro/core/constants/app_colors.dart';
+import '../../core/constants/font_styles.dart';
 import '../../core/models/dropdownhendler/labour_category_ddl.dart';
 import '../../core/network/logger.dart';
 import '../../core/services/DropDownHandler/drop_down_hendler_api.dart';
@@ -194,12 +196,18 @@ class _ReusableDropdownCategoryState extends State<ReusableDropdownCategory> {
         : "-- Select Category --";  // Default "Select Category" option
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(widget.label, style: GoogleFonts.nunitoSans(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 5),
+
+          Text(widget.label,
+          style: FontStyles.semiBold600.copyWith(
+                  fontWeight: FontWeight.bold,
+color: AppColors.primaryBlackFont,
+          ),
+          ),
+          const SizedBox(height: 4),
           if (_isLoading)
           // Show loading indicator while fetching data
             Center(
@@ -214,33 +222,36 @@ class _ReusableDropdownCategoryState extends State<ReusableDropdownCategory> {
               builder: (state) => Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CommonDropdown<String>(
+                  Container(
+                    height: 50,
+                    child: CommonDropdown<String>(
 
-                    hintText: widget.label,
-                    items: [
-                      "-- Select Category --",  // Default option
-                      ..._categoryItems.map((e) => e.labourCategoryText).toList()
-                    ],
-                    initialItem: initialItem,
-                    getItemName: (item) => item,
-                    onChanged: (value) {
-                      final selected = _categoryItems.firstWhere(
-                            (e) => e.labourCategoryText == value,
-                        orElse: () => LabourCategoryItem(
-                          labourCategoryValue: "Unknown",
-                          labourCategoryText: "Unknown",
-                        ),
-                      );
-                      AppLogger.info("📝 Selected: ${selected.labourCategoryText} (ID: ${selected.labourCategoryValue})");
+                      hintText: widget.label,
+                      items: [
+                        "-- Select Category --",  // Default option
+                        ..._categoryItems.map((e) => e.labourCategoryText).toList()
+                      ],
+                      initialItem: initialItem,
+                      getItemName: (item) => item,
+                      onChanged: (value) {
+                        final selected = _categoryItems.firstWhere(
+                              (e) => e.labourCategoryText == value,
+                          orElse: () => LabourCategoryItem(
+                            labourCategoryValue: "Unknown",
+                            labourCategoryText: "Unknown",
+                          ),
+                        );
+                        AppLogger.info("📝 Selected: ${selected.labourCategoryText} (ID: ${selected.labourCategoryValue})");
 
-                      setState(() {
-                        _selectedName = selected.labourCategoryText;
-                        _selectedId = selected.labourCategoryValue;
-                      });
+                        setState(() {
+                          _selectedName = selected.labourCategoryText;
+                          _selectedId = selected.labourCategoryValue;
+                        });
 
-                      state.didChange(value);
-                      widget.onChanged(_selectedName, _selectedId);
-                    },
+                        state.didChange(value);
+                        widget.onChanged(_selectedName, _selectedId);
+                      },
+                    ),
                   ),
                   if (state.hasError)
                     Padding(

@@ -42,7 +42,7 @@
 <!--    <application-->
 <!--        android:label="inniti_constro"-->
 <!--        android:name="${applicationName}"-->
-<!--        android:icon="@drawable/splash">-->
+<!--        android:icon="@mipmap/launcher_icon">-->
 
 
 <!--        &lt;!&ndash; Main Activity configuration &ndash;&gt;-->
@@ -151,7 +151,7 @@
     <application
         android:label="inniti_constro"
         android:name="${applicationName}"
-        android:icon="@drawable/splash">
+        android:icon="@mipmap/launcher_icon">
 
         <activity
             android:name=".MainActivity"

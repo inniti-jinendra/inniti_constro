@@ -108,7 +108,7 @@ class FontStyles {
   // Medium (500)
   static TextStyle medium500 = TextStyle(
     fontFamily: 'NunitoSans',
-    fontWeight: FontWeight.w500,
+    fontWeight: FontWeight.w600,
   );
 
   // SemiBold (600)

@@ -139,15 +139,15 @@
 //   }
 // }
 
-
-
 // labor list active or not card
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/font_styles.dart';
 
 class LabourCard extends StatefulWidget {
   final String id;
@@ -180,13 +180,28 @@ class _LabourCardState extends State<LabourCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return Container(
+
       margin: const EdgeInsets.symmetric(vertical: 8),
+
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x405B21B1), // 40 is hex for 25% opacity
+            offset: Offset(0, 0),     // Matches 0px 0px
+            blurRadius: 14,
+            spreadRadius: -6,         // Negative spread like CSS
+          ),
+        ],
+      ),
+
       child: Container(
+        height: 85,
         decoration: BoxDecoration(
-          color: _isActive ? Colors.white : Colors.grey[200],
+          color: _isActive ? AppColors.white: Color(0x99f8f9fa),
+          //color: _isActive ? AppColors.white: AppColors.whitewithOps,
           borderRadius: BorderRadius.circular(12),
         ),
         //padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16), // ✅ Better spacing
@@ -196,7 +211,7 @@ class _LabourCardState extends State<LabourCard> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // ✅ Labour Name (with proper padding & alignment)
+                // Labour Name (with proper padding & alignment)
                 Expanded(
                   child: Padding(
                     padding: EdgeInsets.symmetric(
@@ -207,10 +222,11 @@ class _LabourCardState extends State<LabourCard> {
                       child: Container(
                         child: Text(
                           widget.name,
-                          style: GoogleFonts.nunitoSans(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: _isActive ? Colors.black87 : Colors.grey,
+                          style: FontStyles.bold700.copyWith(
+                            height: 1.0, // Equivalent to 100% line-height
+                            letterSpacing: 0.0,
+                            fontSize: 18,
+                            color: _isActive ? AppColors.primaryBlackFont : AppColors.primaryBlackFontWithOpps60,
                           ),
                           overflow:
                           TextOverflow.ellipsis, // ✅ Prevents text overflow
@@ -222,9 +238,9 @@ class _LabourCardState extends State<LabourCard> {
 
                 // 🔴 Custom ID Badge (Aligned to top-right)
                 Container(
-                  height: 38,
-                  // ✅ Slightly smaller for better proportion
-                  width: 38,
+                  // height: 38,
+                  // // ✅ Slightly smaller for better proportion
+                  // width: 38,
                   alignment: Alignment.center,
                   decoration: const BoxDecoration(
                     color: AppColors.primaryWhitebg,
@@ -233,13 +249,20 @@ class _LabourCardState extends State<LabourCard> {
                       bottomLeft: Radius.circular(12),
                     ),
                   ),
-                  child: Text(
-                    widget.id,
-                    style: GoogleFonts.nunitoSans(
-                      fontSize: 10,
-                      //fontSize: 16, // ✅ Adjusted for readability
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primaryBlueFont,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 13,
+                      vertical: 8
+                    ),
+                    child: Text(
+                      widget.id,
+                     // "1",
+                      style: FontStyles.bold700.copyWith(
+                       // fontSize: 10,
+                        fontSize: 15, // ✅ Adjusted for readability
+                      //  color: AppColors.primaryBlueFont,
+                         color: _isActive ? AppColors.primaryBlue : AppColors.primaryBlueWithOps60,
+                      ),
                     ),
                   ),
                 ),
@@ -248,7 +271,7 @@ class _LabourCardState extends State<LabourCard> {
 
             // ✅ Company Name Subtitle
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -260,49 +283,110 @@ class _LabourCardState extends State<LabourCard> {
                           'assets/icons/home-iocn/pin-icon.svg',
                           height: 16, // ✅ Adjust size as needed
                           width: 16,
-                          colorFilter: const ColorFilter.mode(
-                            Colors.grey,
-                            BlendMode.srcIn,
-                          ), // ✅ Set color
+                         color: _isActive ? AppColors.primaryBlue : AppColors.primaryBlueWithOps60,
+                          // colorFilter: const ColorFilter.mode(
+                          //   Colors.grey,
+                          //   BlendMode.srcIn,
+                          // ), // ✅ Set color
                         ),
 
-                        const SizedBox(width: 6), // ✅ Space between icon & text
+                        const SizedBox(width: 3), // ✅ Space between icon & text
                         // 📌 Company Name Text
                         Text(
-                          widget.company.length > 25 ? widget.company.substring(0, 20) + '...' : widget.company,
-                          style: GoogleFonts.nunitoSans(
-                            fontSize: 14,
-                            color: Colors.grey[600],
+                          widget.company.length > 25
+                              ? widget.company.substring(0, 20) + '...'
+                              : widget.company,
+                          style: FontStyles.medium500.copyWith(
+                            fontSize: 11,
+                            color:  _isActive ? AppColors.primaryLightGrayFont : AppColors.primaryLightGrayFontWithOps60,
                           ),
                         ),
-
                       ] else
-                      // 📌 Black Container (Shown when company name is empty)
+                        // 📌 Black Container (Shown when company name is empty)
                         SizedBox(height: 20, width: 50),
                     ],
                   ),
 
                   // ✅ Toggle Switch (Aligned Right & Smaller)
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Transform.scale(
-                      scale: 0.5, // ✅ Adjusted to a reasonable small size
-                      child: Switch(
-                        value: _isActive,
-                        onChanged: (value) {
-                          setState(() {
-                            _isActive = value;
-                            widget.onToggle(value);
-                          });
-                        },
-                        activeColor: Colors.green,
-                        inactiveThumbColor: Colors.red,
-                        activeTrackColor: Colors.green[200],
-                        inactiveTrackColor: Colors.red[200],
-                      ),
+                  // Align(
+                  //   alignment: Alignment.centerRight,
+                  //   child: Transform.scale(
+                  //     scale: 0.5, // ✅ Adjusted to a reasonable small size
+                  //     child: Switch(
+                  //       value: _isActive,
+                  //       onChanged: (value) {
+                  //         setState(() {
+                  //           _isActive = value;
+                  //           widget.onToggle(value);
+                  //         });
+                  //       },
+                  //       activeColor: Colors.green,
+                  //       inactiveThumbColor: Colors.red,
+                  //       activeTrackColor: Colors.green[200],
+                  //       inactiveTrackColor: Colors.red[200],
+                  //     ),
+                  //   ),
+                  // ),
+
+      Container(
+        width: 38,
+        height: 23,
+        child: GestureDetector(
+          onTap: () {
+            setState(() {
+              _isActive = !_isActive;
+              widget.onToggle(_isActive);
+            });
+          },
+          child: AnimatedContainer(
+            duration: Duration(milliseconds: 250),
+            padding: EdgeInsets.symmetric(horizontal: 4), // reduce padding to let color fill more
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              //color: Colors.red.shade300, // slightly darker for better fill effect
+              color: _isActive ? Colors.green.shade300 : Colors.red.shade300, // slightly darker for better fill effect
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 4,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: AnimatedAlign(
+              duration: Duration(milliseconds: 250),
+              alignment: _isActive ? Alignment.centerRight : Alignment.centerLeft,
+              child: Container(
+                width: 18,
+                height: 18,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _isActive ? Colors.green : Colors.red,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
                     ),
+                  ],
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  _isActive ? 'A' : 'D',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
                   ),
-                ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+
+
+      ],
               ),
             ),
           ],

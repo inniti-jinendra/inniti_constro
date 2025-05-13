@@ -311,22 +311,30 @@ class CheckInOutNotifier extends StateNotifier<CheckInOutState> {
       return;
     }
 
-    final checkInMoment = DateTime.now();
+    final success = await _sendCheckInDataToServer(
+      DateTime.now(), // This can be server-side timestamp if needed
+      image,
+      location,
+    );
 
-    final success = await _sendCheckInDataToServer(checkInMoment, image, location);
     if (success) {
+      final checkInMoment = DateTime.now(); // ✅ Capture real time after API succeeds
+
       state = state.copyWith(
         checkInTime: checkInMoment,
         checkInImage: image,
       );
+
+      AppLogger.info("✅ Starting ticker at $checkInMoment");
       _startTimeTicker(checkInMoment);
 
       // 🔄 Refresh UI
-      //await onRefresh();
+      // await onRefresh();
     }
 
     state = state.copyWith(isLoading: false);
   }
+
 
   /// Checks out the user after successful data post and stops timer.
   Future<void> checkOut() async {

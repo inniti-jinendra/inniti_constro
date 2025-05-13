@@ -98,7 +98,7 @@ dev_dependencies:
 
 flutter_native_splash:
   color: "#ffffff"
-  image: "assets/images/inniti_logo.png"
+  image: "assets/images/app_logo.png"
   android: true
   ios: true
   web: false
@@ -136,6 +136,7 @@ flutter:
     - assets/loti/no-internet/no-internet-cloude.json
     - assets/loti/loder/
     - assets/icons/attendance/
+    - assets/icons/continer-icons/
 
 
 

@@ -27,21 +27,16 @@
 		<key>UILaunchStoryboardName</key>
 		<string>LaunchScreen</string>
 		<key>UIMainStoryboardFile</key>
-
 		<key>NSLocationWhenInUseUsageDescription</key>
-        <string>We need your location to display your attendance details.</string>
-        <key>NSLocationAlwaysUsageDescription</key>
-        <string>We need your location to display your attendance details.</string>
-
-<key>NSCameraUsageDescription</key>
-<string>We need access to your camera to capture photos.</string>
-
-<key>NSPhotoLibraryUsageDescription</key>
-<string>We need access to your photo library to save and view photos.</string>
-
-<key>NSPhotoLibraryAddUsageDescription</key>
-<string>We need permission to add photos to your gallery.</string>
-
+		<string>We need your location to display your attendance details.</string>
+		<key>NSLocationAlwaysUsageDescription</key>
+		<string>We need your location to display your attendance details.</string>
+		<key>NSCameraUsageDescription</key>
+		<string>We need access to your camera to capture photos.</string>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>We need access to your photo library to save and view photos.</string>
+		<key>NSPhotoLibraryAddUsageDescription</key>
+		<string>We need permission to add photos to your gallery.</string>
 		<string>Main</string>
 		<key>UISupportedInterfaceOrientations</key>
 		<array>

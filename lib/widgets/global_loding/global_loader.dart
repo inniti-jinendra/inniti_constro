@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:inniti_constro/core/constants/app_colors.dart';
 import 'package:lottie/lottie.dart';
 
 /// **Global Loader Utility with Enhanced UI/UX**
@@ -49,7 +50,10 @@ class GlobalLoader {
                   //   // width: 120,
                   //   // height: 120,
                   // ),
-                  CircularProgressIndicator(),
+                  CircularProgressIndicator(
+                    color: AppColors.primaryBlue,
+                    backgroundColor: Colors.white60,
+                  ),
                   // const SizedBox(height: 10),
                   // const Text(
                   //   "Please wait...",

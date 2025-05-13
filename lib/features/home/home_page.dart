@@ -433,67 +433,69 @@ class HomePageContent extends StatelessWidget {
             SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.all(padding),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Category',
-                          style: GoogleFonts.nunitoSans(
-                            fontSize: screenWidth * 0.05, // Dynamic font size
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primaryBlackFont,
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Category',
+                            style: GoogleFonts.nunitoSans(
+                              fontSize: screenWidth * 0.05, // Dynamic font size
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primaryBlackFont,
+                            ),
                           ),
-                        ),
-                        Text(
-                          'See all',
-                          style: GoogleFonts.nunitoSans(
-                            fontSize: screenWidth * 0.04, // Dynamic font size
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primaryBlueFont,
+                          Text(
+                            'See all',
+                            style: GoogleFonts.nunitoSans(
+                              fontSize: screenWidth * 0.04, // Dynamic font size
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primaryBlueFont,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _buildPlanCard('Personal Plan', '3 Plans Remaining', screenWidth),
-                        _buildPlanCard('Work Plan', '8 Plans Remaining', screenWidth),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    // Row(
-                    //   crossAxisAlignment: CrossAxisAlignment.center,
-                    //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    //   children: [
-                    //     Text(
-                    //       'On Going Task',
-                    //       style: GoogleFonts.nunitoSans(
-                    //         fontSize: screenWidth * 0.05, // Dynamic font size
-                    //         fontWeight: FontWeight.w700,
-                    //         color: AppColors.primaryBlackFont,
-                    //       ),
-                    //     ),
-                    //     Text(
-                    //       'See all',
-                    //       style: GoogleFonts.nunitoSans(
-                    //         fontSize: screenWidth * 0.04, // Dynamic font size
-                    //         fontWeight: FontWeight.w700,
-                    //         color: Color(0xff7445BA),
-                    //       ),
-                    //     ),
-                    //   ],
-                    // ),
-                    // const SizedBox(height: 12),
-                    // _buildTaskCard(screenWidth),
-                    // _buildTaskCard(screenWidth),
-                    // _buildTaskCard(screenWidth),
-                  ],
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _buildPlanCard('Personal Plan', '3 Plans Remaining', screenWidth),
+                          _buildPlanCard('Work Plan', '8 Plans Remaining', screenWidth),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'On Going Task',
+                            style: GoogleFonts.nunitoSans(
+                              fontSize: screenWidth * 0.05, // Dynamic font size
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primaryBlackFont,
+                            ),
+                          ),
+                          Text(
+                            'See all',
+                            style: GoogleFonts.nunitoSans(
+                              fontSize: screenWidth * 0.04, // Dynamic font size
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xff7445BA),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      _buildTaskCard(screenWidth),
+                      // _buildTaskCard(screenWidth),
+                      // _buildTaskCard(screenWidth),
+                    ],
+                  ),
                 ),
               ),
             ),

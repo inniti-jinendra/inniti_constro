@@ -491,14 +491,14 @@ class _HomePageState extends State<HomePage> {
             ),
             TabItem(
               icon: SvgPicture.asset(
-                'assets/icons/bottam-navi/order-unselected.svg',
+                'assets/icons/home-iocn/stickynote-unselected.svg',
                // color: Colors.grey,
                 height: 24,
               ),
               activeIcon: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: SvgPicture.asset(
-                  'assets/icons/bottam-navi/order-selected.svg',
+                  'assets/icons/home-iocn/stickynote-selected.svg',
                   color:AppColors.white,
                   height: 24,
                 ),

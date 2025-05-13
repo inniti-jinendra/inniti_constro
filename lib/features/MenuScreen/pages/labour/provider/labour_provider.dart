@@ -206,6 +206,9 @@ import '../../../../../widgets/global_loding/global_loader.dart';
 //   }
 // }
 
+final isFilterAppliedProvider = StateProvider<bool>((ref) => false);
+
+
 final labourListProvider = StateNotifierProvider<LabourNotifier, List<Labour>>((ref) {
   final apiService = LabourApiService(); // Replace with your actual API service
   return LabourNotifier(apiService);

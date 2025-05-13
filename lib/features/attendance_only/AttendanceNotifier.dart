@@ -16,7 +16,6 @@ import '../../core/models/attendance/emp_attendance.dart';
 import '../../core/network/api_endpoints.dart';
 import '../../widgets/global_loding/global_loader.dart';
 
-
 // State Model
 class CheckInOutState {
   final DateTime? checkInTime;
@@ -278,7 +277,7 @@ class CheckInOutNotifier extends StateNotifier<CheckInOutState> {
   CheckInOutNotifier() : super(CheckInOutState());
 
   Ticker? _ticker;
-  bool? isLoading= false;
+  bool? isLoading = false;
 
   void _startTimeTicker(DateTime checkInTime) {
     _ticker?.dispose();
@@ -290,7 +289,8 @@ class CheckInOutNotifier extends StateNotifier<CheckInOutState> {
 
       final formatted = _formatDuration(duration);
       state = state.copyWith(timeDifference: formatted);
-    })..start();
+    })
+      ..start();
   }
 
   void _stopTimeTicker() {
@@ -314,21 +314,24 @@ class CheckInOutNotifier extends StateNotifier<CheckInOutState> {
       return;
     }
 
-    final localNow = DateTime.now();
-    final success = await _sendCheckInDataToServer(localNow, image, location);
+    //final localNow = DateTime.now();
+    final success =
+        await _sendCheckInDataToServer(DateTime.now(), image, location);
 
     if (success &&
         state.empAttendanceId != null &&
         // state.empAttendanceId != 0 &&
         state.checkInTime != null &&
-        state.checkInTime != 00
+        state.checkInTime != 00) {
+      //final actualCheckInTime = DateTime.now(); // ✅ Capture real time after API succeeds
 
-    ) {
+      final checkInMoment =
+          DateTime.now(); // ✅ Capture real time after API succeeds
       final actualCheckInTime = state.checkInTime!;
       AppLogger.info("Timer started from Check-In time: $actualCheckInTime");
+      AppLogger.info("✅ Starting ticker at $checkInMoment");
 
-      _startTimeTicker(actualCheckInTime);
-
+      _startTimeTicker(checkInMoment);
     } else {
       AppLogger.warn("Timer not started. API failed or check-in data missing.");
     }
@@ -352,26 +355,30 @@ class CheckInOutNotifier extends StateNotifier<CheckInOutState> {
     //   return;
     // }
 
-    if (image == null || state.checkInTime == null || state.empAttendanceId == 0) {
+    if (image == null ||
+        state.checkInTime == null ||
+        state.empAttendanceId == 0) {
       AppLogger.error("❌ Missing data for Check-Out.");
       state = state.copyWith(isLoading: false);
       isLoading = false;
       return;
     }
 
-    final now = DateTime.now();
-    final duration = now.difference(state.checkInTime!);
+    final checkOutMoment = DateTime.now();
+    final duration = checkOutMoment.difference(state.checkInTime!);
     final formatted = _formatDuration(duration);
 
-    AppLogger.info("📤 Proceeding with Check-Out. Time: $now, Duration: $formatted, empAttendanceId: ${state.empAttendanceId}");
+    AppLogger.info(
+        "📤 Proceeding with Check-Out. Time: $checkOutMoment, Duration: $formatted, empAttendanceId: ${state.empAttendanceId}");
 
     //final success = await _sendCheckOutDataToServer(now, image, location, );
-    final success = await _sendCheckOutDataToServer(now, image, location, empAttendanceId!);
+    final success = await _sendCheckOutDataToServer(
+        checkOutMoment, image, location, empAttendanceId!);
 
     if (success) {
       _stopTimeTicker();
       state = state.copyWith(
-        checkOutTime: now,
+        checkOutTime: checkOutMoment,
         checkOutImage: image,
         timeDifference: formatted,
       );
@@ -390,33 +397,36 @@ class CheckInOutNotifier extends StateNotifier<CheckInOutState> {
 
   Future<bool> _sendCheckInDataToServer(
       DateTime localTime, File image, LocationDetails location) async {
-
     try {
-
       AppLogger.info("📤 Sending Check-In...");
-      AppLogger.info("Check-In: EmpAttendanceID before API call: ${state.empAttendanceId ?? 0}");
+      AppLogger.info(
+          "Check-In: EmpAttendanceID before API call: ${state.empAttendanceId ?? 0}");
 
       final response = await _postAttendance(
         time: localTime,
         image: image,
         location: location,
         type: "IN",
-        empAttendanceId:  state.empAttendanceId ?? 0,
-       // empAttendanceId: 0,
+        empAttendanceId: state.empAttendanceId ?? 0,
+        // empAttendanceId: 0,
       );
 
-      AppLogger.info("Check-In Response: ${response.statusCode} => ${response.body}");
+      AppLogger.info(
+          "Check-In Response: ${response.statusCode} => ${response.body}");
 
       final isSuccess = _isApiSuccess(response);
 
       if (isSuccess) {
         final body = json.decode(response.body);
-        final id = int.tryParse(body['EmpAttendanceID']?.toString() ?? '0') ?? 0;
+        final id =
+            int.tryParse(body['EmpAttendanceID']?.toString() ?? '0') ?? 0;
         final inTimeStr = body['InTime'] ?? body['inTime'];
-        DateTime? parsedInTime = inTimeStr != null ? DateTime.tryParse(inTimeStr) : null;
-        final inTime = (parsedInTime != null && parsedInTime.isBefore(DateTime.now()))
-            ? parsedInTime
-            : localTime;
+        DateTime? parsedInTime =
+            inTimeStr != null ? DateTime.tryParse(inTimeStr) : null;
+        final inTime =
+            (parsedInTime != null && parsedInTime.isBefore(DateTime.now()))
+                ? parsedInTime
+                : localTime;
 
         AppLogger.info("📋 Check-In: EmpAttendanceID after API call: $id");
 
@@ -426,7 +436,8 @@ class CheckInOutNotifier extends StateNotifier<CheckInOutState> {
           checkInTime: inTime,
         );
 
-        AppLogger.info("✅ Check-In Success: Attendance ID $id | InTime: $inTime");
+        AppLogger.info(
+            "✅ Check-In Success: Attendance ID $id | InTime: $inTime");
         return true;
       } else {
         AppLogger.warn("❌ Check-In failed.");
@@ -439,11 +450,16 @@ class CheckInOutNotifier extends StateNotifier<CheckInOutState> {
   }
 
   Future<bool> _sendCheckOutDataToServer(
-      DateTime checkOutTime, File image, LocationDetails location,  int empAttendanceId,) async {
+    DateTime checkOutTime,
+    File image,
+    LocationDetails location,
+    int empAttendanceId,
+  ) async {
     try {
       AppLogger.info("📤 Sending Check-Out...");
 
-      AppLogger.info("Check-Out: EmpAttendanceID before API call: $empAttendanceId");
+      AppLogger.info(
+          "Check-Out: EmpAttendanceID before API call: $empAttendanceId");
 
       final response = await _postAttendance(
         time: checkOutTime,
@@ -453,12 +469,14 @@ class CheckInOutNotifier extends StateNotifier<CheckInOutState> {
         empAttendanceId: empAttendanceId,
       );
 
-      AppLogger.info("📥 Check-Out Response: ${response.statusCode} => ${response.body}");
+      AppLogger.info(
+          "📥 Check-Out Response: ${response.statusCode} => ${response.body}");
 
       final isSuccess = _isApiSuccess(response);
 
       if (isSuccess) {
-        AppLogger.info("Check-Out: EmpAttendanceID after  API call: $empAttendanceId");
+        AppLogger.info(
+            "Check-Out: EmpAttendanceID after  API call: $empAttendanceId");
         AppLogger.info("✅ Check-Out Success");
         return true;
       } else {
@@ -510,7 +528,7 @@ class CheckInOutNotifier extends StateNotifier<CheckInOutState> {
 
     final response = await http.post(
       Uri.parse(ApiEndpoints.saveSelfAttendance),
-     // Uri.parse("http://192.168.1.17:1015/api/SelfAttendance/Save-Self-Attendance"),
+      // Uri.parse("http://192.168.1.17:1015/api/SelfAttendance/Save-Self-Attendance"),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': token!,
@@ -606,11 +624,9 @@ class CheckInOutNotifier extends StateNotifier<CheckInOutState> {
   }
 }
 
-
-
 // Providers for state management
 final checkInOutStateProvider =
-StateNotifierProvider<CheckInOutNotifier, CheckInOutState>((ref) {
+    StateNotifierProvider<CheckInOutNotifier, CheckInOutState>((ref) {
   return CheckInOutNotifier();
 });
 
@@ -655,12 +671,13 @@ final currentLocationProvider = FutureProvider<LocationDetails>((ref) async {
 
     // Get placemarks from the position
     List<Placemark> placemarks = await GeocodingPlatform.instance
-        ?.placemarkFromCoordinates(position.latitude, position.longitude) ??
+            ?.placemarkFromCoordinates(position.latitude, position.longitude) ??
         [];
 
     // Check if we got any placemarks and return a more readable address
     if (placemarks.isNotEmpty) {
-      Placemark placemark = placemarks[0]; // Take the first placemark (there can be multiple)
+      Placemark placemark =
+          placemarks[0]; // Take the first placemark (there can be multiple)
 
       // Construct a readable address from the placemark
       // String addressParts = [
@@ -676,14 +693,14 @@ final currentLocationProvider = FutureProvider<LocationDetails>((ref) async {
       //     .join(', ');
 
       String addressParts = [
-        placemark.subThoroughfare,   // House number or block (e.g., "C/308")
-        placemark.name,              // Building name (e.g., "Ganesh Glory 11")
-        placemark.thoroughfare,      // Street/Road (e.g., "Jagatpur Road")
-        placemark.subLocality,       // Area within locality (e.g., "Gota")
-        placemark.locality,          // City (e.g., "Ahmedabad")
+        placemark.subThoroughfare, // House number or block (e.g., "C/308")
+        placemark.name, // Building name (e.g., "Ganesh Glory 11")
+        placemark.thoroughfare, // Street/Road (e.g., "Jagatpur Road")
+        placemark.subLocality, // Area within locality (e.g., "Gota")
+        placemark.locality, // City (e.g., "Ahmedabad")
         placemark.administrativeArea, // State (e.g., "Gujarat")
-        placemark.postalCode,        // PIN code (e.g., "382470")
-        placemark.country,           // Country (e.g., "India")
+        placemark.postalCode, // PIN code (e.g., "382470")
+        placemark.country, // Country (e.g., "India")
       ].where((part) => part != null && part.isNotEmpty).join(', ');
 
       debugPrint('Placemark details: ${placemark.toString()}');
@@ -737,6 +754,7 @@ Future<bool> _checkAndRequestLocationPermission() async {
   return granted;
 }
 
-final checkInOutProvider = StateNotifierProvider<CheckInOutNotifier, CheckInOutState>((ref) {
+final checkInOutProvider =
+    StateNotifierProvider<CheckInOutNotifier, CheckInOutState>((ref) {
   return CheckInOutNotifier();
 });

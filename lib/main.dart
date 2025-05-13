@@ -39,6 +39,7 @@ import 'package:inniti_constro/theme/themes/app_themes.dart';
 import 'core/network/connectivity_status_notifier.dart';
 import 'core/network/logger.dart';
 
+import 'features/attedance/demo.dart';
 import 'features/offline_page/offline_page.dart';
 import 'features/splash/splash_screen.dart';
 
@@ -86,7 +87,8 @@ class MyApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       title: 'Inniti ERP',
       theme: AppTheme.defaultTheme,
-       home: _buildHome(connectivityStatus),
+      // home: CameraAccess(),
+      home: _buildHome(connectivityStatus),
       //home: LabourAttendancePage(),
       onGenerateRoute: RouteGenerator.onGenerate,
     );

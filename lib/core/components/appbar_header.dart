@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../constants/constants.dart';
+import '../constants/font_styles.dart';
 
 class AppbarHeader extends StatelessWidget {
   final String headerName;
@@ -21,20 +22,18 @@ class AppbarHeader extends StatelessWidget {
       children: [
         Text(
           headerName,
-          style: GoogleFonts.nunitoSans(
-            fontWeight: FontWeight.w700,
-            fontSize: 18,
+          style: FontStyles.bold700.copyWith(
             color: AppColors.primaryBlackFont,
+            fontSize: 18,
           ),
         ),
         Visibility(
           visible: projectName != '',
           child: Text(
             projectName,
-            style: GoogleFonts.nunitoSans(
-              fontWeight: FontWeight.w700,
-              fontSize: 12,
+            style: FontStyles.bold700.copyWith(
               color: AppColors.primaryBlackFont,
+              fontSize: 12,
             ),
           ),
         ),

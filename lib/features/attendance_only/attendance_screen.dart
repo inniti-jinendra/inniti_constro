@@ -13,6 +13,7 @@ import 'package:inniti_constro/core/constants/app_colors.dart';
 import 'package:inniti_constro/features/attedance/map_screen.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/constants/font_styles.dart';
 import '../../core/models/attendance/only_attendance/details_only_self_attendance_data_models.dart';
 import '../../core/models/attendance/only_attendance/list_only_self_attendance_data_models.dart';
 import '../../core/network/logger.dart';
@@ -369,7 +370,7 @@ class _AttendanceOnlyState extends ConsumerState<AttendanceOnly> {
                           MapScreen(),
                           //_checkInCard(),
                           //CheckInCard(),
-                          //SizedBox(height: 20.h),
+                          SizedBox(height: 20.h),
                           _buildTopCard(context, ref, checkInOutState, checkInOutNotifier),
 
                           SizedBox(height: 20.h),
@@ -380,9 +381,12 @@ class _AttendanceOnlyState extends ConsumerState<AttendanceOnly> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text("Current Attendance",
-                                  style: GoogleFonts.poppins(
-                                      fontSize: 14.sp, fontWeight: FontWeight.w600)),
-                              SizedBox(height: 12.h),
+                                style: FontStyles.semiBold600.copyWith(
+                                  fontSize: 16,
+                                  color:  AppColors.primaryBlackFont,
+                                ),
+                              ),
+                              //SizedBox(height: 12),
                               _attendanceList.isNotEmpty
                                   ? ListView.builder(
                                 physics: NeverScrollableScrollPhysics(),
@@ -514,22 +518,34 @@ class _AttendanceOnlyState extends ConsumerState<AttendanceOnly> {
                 //     color: Colors.indigo,
                 //   ),
                 // ),
-                Text(
-                  "Good Morning, ${_userNameController.text.length > 10
-                      ? _userNameController.text.substring(0, 10)
-                      : _userNameController.text}",
-                  style: GoogleFonts.poppins(
-                    fontSize: 18.sp,
-                    color: Colors.indigo,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      "Good Morning,",
+                      style: FontStyles.bold700.copyWith(
+                        fontSize: 18,
+                        color:  AppColors.primaryBlue,
+                      ),
+                    ),
+                    SizedBox(width: 4,),
+                    Text(
+                      "${_userNameController.text.length > 10
+                    ? _userNameController.text.substring(0, 10)
+                        : _userNameController.text}",
+                      style: FontStyles.bold700.copyWith(
+                        fontSize: 18,
+                        color:  AppColors.primaryBlackFont,
+                      ),
+                    ),
+                  ],
                 ),
 
-                SizedBox(height: 4.h),
+                SizedBox(height: 4),
                 Text(
                   "Have a good day with full of productivity and good vibes",
-                  style: GoogleFonts.poppins(
-                    fontSize: 12.sp,
-                    color: Colors.grey,
+                  style: FontStyles.medium500.copyWith(
+                    fontSize: 13,
+                    color:  AppColors.primaryBlackFontWithOpps60,
                   ),
                   softWrap: true,
                   overflow: TextOverflow.visible,
@@ -656,14 +672,31 @@ class _AttendanceOnlyState extends ConsumerState<AttendanceOnly> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text("Attendance Summery",
-                  style: GoogleFonts.poppins(
-                      fontSize: 14.sp, fontWeight: FontWeight.w600)),
+                style: FontStyles.semiBold600.copyWith(
+                  fontSize: 16,
+                  color:  AppColors.primaryBlackFont,
+                ),
+              ),
               Row(
                 children: [
-                  Icon(Icons.calendar_month, size: 16.sp, color: Colors.grey),
+                  SvgPicture.asset(
+                    'assets/icons/attendance/blue-calendar.svg',
+                    height: 16, // ✅ Adjust size as needed
+                    width: 16,
+                    //color:  AppColors.primaryBlueWithOps60,
+                    // colorFilter: const ColorFilter.mode(
+                    //   Colors.grey,
+                    //   BlendMode.srcIn,
+                    // ), // ✅ Set color
+                  ),
                   SizedBox(width: 4.w),
                   // Curant Month Name
-                  Text( DateFormat.LLLL().format(DateTime.now()), style: GoogleFonts.poppins(fontSize: 12.sp)),
+                  Text( DateFormat.LLLL().format(DateTime.now()),
+                    style: FontStyles.semiBold600.copyWith(
+                      fontSize: 16,
+                      color:  AppColors.primaryBlackFontWithOpps40,
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -684,7 +717,8 @@ class _AttendanceOnlyState extends ConsumerState<AttendanceOnly> {
 
   Widget _summaryItem(String count, String label, Color color, Color Scolor) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
+      height: 90,
+      padding: EdgeInsets.symmetric(vertical: 12, horizontal:10),
       decoration: BoxDecoration(
         color: Scolor,
         //color: Colors.grey.shade200,
@@ -696,12 +730,15 @@ class _AttendanceOnlyState extends ConsumerState<AttendanceOnly> {
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             count,
-            style: GoogleFonts.poppins(
-              fontSize: 16.sp,
-              fontWeight: FontWeight.bold,
+            style: FontStyles.bold700.copyWith(
+              height: 1.0, // Equivalent to 100% line-height
+              letterSpacing: 0.0,
+              fontSize: 20,
+              color: color,
             ),
           ),
           SizedBox(height: 4.h),
@@ -709,8 +746,11 @@ class _AttendanceOnlyState extends ConsumerState<AttendanceOnly> {
             padding:  EdgeInsets.symmetric(horizontal: 9),
             child: Text(
               label,
-              style: GoogleFonts.poppins(
-                fontSize: 12.sp,
+              style: FontStyles.medium500.copyWith(
+                height: 1.0, // Equivalent to 100% line-height
+                letterSpacing: 0.0,
+                fontSize: 18,
+                color: color,
               ),
             ),
           ),
@@ -722,7 +762,7 @@ class _AttendanceOnlyState extends ConsumerState<AttendanceOnly> {
   Widget _attendanceTile(
       String date, String inTime, String outTime, String total, String status) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 10,),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -738,15 +778,35 @@ class _AttendanceOnlyState extends ConsumerState<AttendanceOnly> {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 7),
+              padding: const EdgeInsets.only(left: 14, right: 14, top: 12, bottom: 4),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(date,
-                      style: GoogleFonts.poppins(
-                          fontSize: 13.sp, fontWeight: FontWeight.w600)),
+                  Row(
+                    children: [
+                      SvgPicture.asset(
+                        'assets/icons/attendance/blue-calendar.svg',
+                        height: 16, // ✅ Adjust size as needed
+                        width: 16,
+                        //color:AppColors.primaryBlueWithOps60,
+                        // colorFilter: const ColorFilter.mode(
+                        //   Colors.grey,
+                        //   BlendMode.srcIn,
+                        // ), // ✅ Set color
+                      ),
+
+                      const SizedBox(width: 3),
+                      Text(date,
+                        style: FontStyles.semiBold600.copyWith(
+                          fontSize: 13,
+                          color: AppColors.primaryBlackFontWithOpps60,
+                        ),
+                      ),
+                    ],
+                  ),
                   Container(
                     padding:
                     EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
@@ -757,7 +817,11 @@ class _AttendanceOnlyState extends ConsumerState<AttendanceOnly> {
                       borderRadius: BorderRadius.circular(3.r),
                     ),
                     child: Text(status,
-                        style: GoogleFonts.poppins(fontSize: 12.sp)),
+                      style: FontStyles.medium500.copyWith(
+                        fontSize: 8,
+                        color: AppColors.primaryBlue,
+                      ),
+                    ),
                   )
                 ],
               ),
@@ -765,7 +829,7 @@ class _AttendanceOnlyState extends ConsumerState<AttendanceOnly> {
             SizedBox(height: 8.h),
             Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.primaryWhitebg,
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(12),
                   bottomRight: Radius.circular(12),
@@ -778,11 +842,22 @@ class _AttendanceOnlyState extends ConsumerState<AttendanceOnly> {
                   Padding(
                     padding:
                     const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
-                    child: Column(children: [
+                    child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                       Text("In Time",
-                          style: TextStyle(fontWeight: FontWeight.bold)),
+                        style: FontStyles.semiBold600.copyWith(
+                          fontSize: 12,
+                          color: AppColors.primaryLightGrayFont,
+                        ),
+                      ),
                       SizedBox(height: 4),
-                      Text(inTime), // Dynamic data for In Time
+                      Text(inTime,
+                        style: FontStyles.bold700.copyWith(
+                          fontSize: 12,
+                          color:  AppColors.primaryBlackFont,
+                        ),
+                      ), // Dynamic data for In Time
                     ]),
                   ),
                   Container(
@@ -803,11 +878,22 @@ class _AttendanceOnlyState extends ConsumerState<AttendanceOnly> {
                   Padding(
                     padding:
                     const EdgeInsets.symmetric(horizontal: 4, vertical: 5),
-                    child: Column(children: [
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                       Text("Out Time",
-                          style: TextStyle(fontWeight: FontWeight.bold)),
+                        style: FontStyles.semiBold600.copyWith(
+                          fontSize: 12,
+                          color: AppColors.primaryLightGrayFont,
+                        ),
+                      ),
                       SizedBox(height: 4),
-                      Text(outTime), // Dynamic data for Out Time
+                      Text(outTime,
+                        style: FontStyles.bold700.copyWith(
+                          fontSize: 12,
+                          color:  AppColors.primaryBlackFont,
+                        ),
+                      ), // Dynamic data for Out Time
                     ]),
                   ),
                   Container(
@@ -828,11 +914,22 @@ class _AttendanceOnlyState extends ConsumerState<AttendanceOnly> {
                   Padding(
                     padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-                    child: Column(children: [
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                       Text("Total Hrs",
-                          style: TextStyle(fontWeight: FontWeight.bold)),
+                        style: FontStyles.semiBold600.copyWith(
+                          fontSize: 12,
+                          color: AppColors.primaryLightGrayFont,
+                        ),
+                      ),
                       SizedBox(height: 4),
-                      Text(total),
+                      Text(total,
+                        style: FontStyles.bold700.copyWith(
+                          fontSize: 12,
+                          color:  AppColors.primaryBlackFont,
+                        ),
+                      ),
                     ]),
                   ),
                 ],
@@ -921,10 +1018,14 @@ class _AttendanceOnlyState extends ConsumerState<AttendanceOnly> {
                 ),
                 SizedBox(width: 8),
                 Text(DateFormat('hh:mm:ss a').format(currentTime),
-                    style: TextStyle(fontSize: 16)), // live clock
+                  style: FontStyles.bold700.copyWith(
+                    fontSize: 14,
+                    color:  AppColors.primaryBlackFontWithOpps60,
+                  ),
+                ), // live clock
               ],
             ),
-            SizedBox(height: 16),
+            SizedBox(height: 30),
             // Time difference display (separate hours, minutes, and seconds)
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -956,10 +1057,14 @@ class _AttendanceOnlyState extends ConsumerState<AttendanceOnly> {
                 ),
               ],
             ),
-
+            SizedBox(height: 20),
             Text("Your working hour’s will be calculated here",
-                style: TextStyle(fontSize: 14)),
-            SizedBox(height: 16),
+              style: FontStyles.semiBold600.copyWith(
+                fontSize: 14,
+                color:  AppColors.primaryBlackFontWithOpps60,
+              ),
+            ),
+            SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: checkInOutState.checkInTime == null
                   ? () => checkInOutNotifier.checkIn()
@@ -1064,29 +1169,28 @@ class _AttendanceOnlyState extends ConsumerState<AttendanceOnly> {
             //     );
             //   },
             // ),
-
-            SizedBox(height: 8),
-            Row(
-              children: [
-                SvgPicture.asset(
-                  'assets/icons/attendance/location.svg', // Path to your SVG file
-                  height: 24, // Set the desired size
-                  width: 24, // Set the desired size
-                ),
-                //Icon(Icons.location_pin, size: 24),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    // Combine name, street, ISO, and country into a single line
-                    // "${locationDetails.address.toString() ?? ''}",
-                    //locationDetails.address ?? "Location not available",
-                    _currentAddress,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                ),
-              ],
-            ),
+            // SizedBox(height: 8),
+            // Row(
+            //   children: [
+            //     SvgPicture.asset(
+            //       'assets/icons/attendance/location.svg', // Path to your SVG file
+            //       height: 24, // Set the desired size
+            //       width: 24, // Set the desired size
+            //     ),
+            //     //Icon(Icons.location_pin, size: 24),
+            //     SizedBox(width: 8),
+            //     Expanded(
+            //       child: Text(
+            //         // Combine name, street, ISO, and country into a single line
+            //         // "${locationDetails.address.toString() ?? ''}",
+            //         //locationDetails.address ?? "Location not available",
+            //         _currentAddress,
+            //         overflow: TextOverflow.ellipsis,
+            //         style: TextStyle(color: Colors.grey),
+            //       ),
+            //     ),
+            //   ],
+            // ),
           ],
         ),
       ),

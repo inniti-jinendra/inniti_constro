@@ -14,6 +14,7 @@ import '../../../../../widgets/CustomToast/custom_snackbar.dart';
 import '../../../../../widgets/dropdown/dropdowen_project_iteams.dart';
 import '../../../../../widgets/helper/camera_helper_service.dart';
 
+import '../../../../core/constants/font_styles.dart';
 import '../../../../core/models/dropdownhendler/projectItem_ddl.dart';
 import '../../../../core/services/DropDownHandler/drop_down_hendler_api.dart';
 import '../../../../core/utils/secure_storage_util.dart';
@@ -591,7 +592,9 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
             : _selectedProjectItemTypeName;
 
     return Scaffold(
+      //backgroundColor:AppColors.primaryWhitebg,
       appBar: AppBar(
+
         centerTitle: true,
         title: Column(
           children: [
@@ -612,7 +615,7 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
             ),
           ],
         ),
-        backgroundColor: Colors.white,
+        //backgroundColor: AppColors.primaryWhitebg,
         automaticallyImplyLeading: false,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
@@ -991,7 +994,9 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
                           AppLogger.info('✅ Image Path: $_capturedFilePath');
                         }
 
-                        setState(() {});
+                        setState(() {
+                          Navigator.pop(context, true);
+                        });
 
                         // Navigate back after saving
                         //Navigator.pop(context, true); // Pop and optionally return a value
@@ -1030,62 +1035,88 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
   }
 
   Widget _buildHeader(String name, String labourCategory, String company) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.primaryWhitebg,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
-        ],
-      ),
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    return Column(
+      children: [
+        // 🧭 Location Section (Top Container)
+        Container(
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(12),
+              topRight: Radius.circular(12),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
             children: [
               SvgPicture.asset(
                 "assets/icons/home-iocn/pin-icon.svg",
                 height: 20,
                 width: 20,
               ),
-              const SizedBox(width: 6),
-              Text(
-                company,
-                style: GoogleFonts.nunitoSans(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.primaryLightGrayFont,
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  company,
+                  style: FontStyles.medium500.copyWith(
+                    fontSize: 12,
+                    color: AppColors.primaryBlackFontWithOpps40,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
-          const Divider(),
-          _buildInfoRow("Labour Name", name, "Labour Category", labourCategory),
+        ),
 
-          _buildInfoRowDW(
-            "Date",
-            // DateFormat('dd/MM/yyyy').format(DateTime.now()),
-            _dateController.text.trim(),
-            "Working Hrs.",
-            _workingHoursText,
-          ),
-          _buildInfoRowTime(
-              // "In Time", // Title for In Time
-              // inTime,
-
-              // "Out Time", // Title for Out Time
-
-              // outTime,
+        // 📋 Details Section (Bottom Container)
+        Container(
+          decoration: BoxDecoration(
+            color: AppColors.primaryWhitebg,
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(12),
+              bottomRight: Radius.circular(12),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 4,
+                offset: const Offset(0, 2),
               ),
-          _buildInfoRowNumber(
-            "OT Hrs.",
-            _overtimeController,
-            "OT Rate/Hrs.",
-            _overtimeRateController,
+            ],
           ),
-        ],
-      ),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildInfoRow("Labour Name", name, "Labour Category", labourCategory),
+              const SizedBox(height: 8),
+              _buildInfoRowDW(
+                "Date",
+                _dateController.text.trim(),
+                "Working Hrs.",
+                _workingHoursText,
+              ),
+              const SizedBox(height: 8),
+              _buildInfoRowTime(),
+              const SizedBox(height: 8),
+              _buildInfoRowNumber(
+                "OT Hrs.",
+                _overtimeController,
+                "OT Rate/Hrs.",
+                _overtimeRateController,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -1266,7 +1297,8 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
         children: [
           Expanded(
             child: _buildTimePickerField(
-              label: 'In Time',
+              label: '__:__',
+              //label: 'In Time',
               controller: _inTimeController,
               onTap: _pickInTime,
             ),
@@ -1289,7 +1321,8 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
           ),
           Expanded(
             child: _buildTimePickerField(
-              label: 'Out Time',
+              label: '__:__',
+              //label: 'Out Time',
               controller: _outTimeController,
               onTap: _pickOutTime,
             ),
@@ -1311,8 +1344,16 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
       decoration: InputDecoration(
         hintText: label,
         fillColor: AppColors.primaryWhitebg,
-        suffixIcon: Icon(Icons.access_time),
-        border: OutlineInputBorder(),
+        filled: true,
+        //suffixIcon: Icon(Icons.access_time),
+
+        // Hide all borders
+        border: InputBorder.none,
+        enabledBorder: InputBorder.none,
+        focusedBorder: InputBorder.none,
+        disabledBorder: InputBorder.none,
+        errorBorder: InputBorder.none,
+        focusedErrorBorder: InputBorder.none,
       ),
       onTap: onTap,
       validator: (value) {
@@ -1334,18 +1375,16 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
           children: [
             Text(
               title,
-              style: GoogleFonts.nunitoSans(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primaryLightGrayFont,
+              style: FontStyles.semiBold600.copyWith(
+                fontSize: 10,
+                color: AppColors.primaryBlackFontWithOpps60,
               ),
             ),
             SizedBox(height: 2),
             Text(
               value,
-              style: GoogleFonts.nunitoSans(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
+              style: FontStyles.bold700.copyWith(
+                fontSize: 12,
                 color: AppColors.primaryBlackFont,
               ),
             ),
@@ -1364,10 +1403,9 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
           children: [
             Text(
               title,
-              style: GoogleFonts.nunitoSans(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primaryLightGrayFont,
+              style: FontStyles.semiBold600.copyWith(
+                fontSize: 10,
+                color: AppColors.primaryBlackFontWithOpps40,
               ),
             ),
             SizedBox(height: 2),
@@ -1382,9 +1420,13 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
                   horizontal: 10,
                   vertical: 10,
                 ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
+                // Hide all borders
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                disabledBorder: InputBorder.none,
+                errorBorder: InputBorder.none,
+                focusedErrorBorder: InputBorder.none,
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
@@ -1405,28 +1447,43 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
     );
   }
 
+  // Actvity name & Remarks
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
     TextInputType inputType = TextInputType.text,
     String? Function(String?)? validator,
     void Function(String?)? onSave,
-    int? maxLines, // Optional parameter to allow multiline input
+    int? maxLines,
   }) {
-    return TextFormField(
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: label,
-        alignLabelWithHint:
-            true, // Makes sure the label stays at the top when expanded
-      ),
-      keyboardType: inputType,
-      maxLines: maxLines ?? 1,
-      // Default to 1 line, but can be customized
-      onSaved: onSave,
-      validator: validator,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: FontStyles.semiBold600.copyWith(
+            fontSize: 13,
+            color: AppColors.primaryBlackFont,
+          ),
+        ),
+        const SizedBox(height: 6),
+        TextFormField(
+          controller: controller,
+          decoration: const InputDecoration(
+            fillColor: AppColors.primaryWhitebg,
+            filled: true,
+            border: OutlineInputBorder(), // Optional: add border for clarity
+            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          ),
+          keyboardType: inputType,
+          maxLines: maxLines ?? 1,
+          onSaved: onSave,
+          validator: validator,
+        ),
+      ],
     );
   }
+
 
   // String formatTimeToIso(String timeStr) {
   //   try {
@@ -1708,20 +1765,15 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
         // Navigator.pushReplacementNamed(context, AppRoutes.LaborAttendanceAdd); // Reopen the same screen for new data
         // AppLogger.info("call rotes pushReplacementNamed");
 
-        Navigator.pop(context, true); // ✅ Go back & return success flag
-        Navigator.pop(context, true); // ✅ Go back & return success flag
-        AppLogger.info(" Go back ");
+        //Navigator.pop(context, true); // ✅ Go back & return success flag
 
 
-        if (response == true) {
-         setState(() {
+setState(() {
+  Navigator.pop(context, true); // ✅ Go back & return success flag
+  AppLogger.info(" Go back ");
 
-          // Navigator.pushReplacementNamed(context, AppRoutes.LaborAttendanceAdd); // Reopen the same screen for new data
-          //AppLogger.info("call rotes pushReplacementNamed");
+});
 
-
-         });
-        }
 
        /////// Navigator.pushNamed(context, AppRoutes.LaborAttendanceAdd); // Reopen the same screen for new data
 
@@ -1954,6 +2006,14 @@ class _SimpleAttendanceFormState extends ConsumerState<SimpleAttendanceForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Text(
+          "Project Item Type",
+          style: FontStyles.semiBold600.copyWith(
+            fontSize: 13,
+            color: AppColors.primaryBlackFont,
+          ),
+        ),
+        SizedBox(height: 5,),
         FormField<String>(
           initialValue: selectedItem,
           validator: validator,
