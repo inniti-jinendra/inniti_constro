@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../core/components/app_back_button.dart';
@@ -122,7 +123,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
             // Navigator.pop(context);
             Navigator.pushReplacementNamed(context, AppRoutes.entryPoint);
           },
-          icon: Icon(Icons.chevron_left, size: 30),
+          icon: SvgPicture.asset(
+            "assets/icons/setting/LeftArrow.svg",
+          ),
           color: AppColors.primaryBlue,
         ),
         title: AppbarHeader(

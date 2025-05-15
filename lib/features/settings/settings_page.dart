@@ -3,7 +3,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../routes/app_routes.dart';
+import '../../core/constants/font_styles.dart';
 import '../../core/models/account/user_details.dart';
+import '../../core/network/logger.dart';
 import '../../core/services/profile/ProfileAccountApiService.dart';
 import '../../core/utils/secure_storage_util.dart';
 import '../../widgets/alert_dialog/custom_alert_dialog.dart';
@@ -44,7 +46,10 @@ class AppSettingsTile extends StatelessWidget {
       ),
       title: Text(
         title,
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        style: FontStyles.semiBold600.copyWith(
+          color: AppColors.primaryBlackFont,
+          fontSize: 18,
+        ),
       ),
       trailing: const Icon(Icons.chevron_right),
       onTap: onTap,
@@ -61,11 +66,13 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   ProfileUserDetails? _userDetails;
+  String? _projectName;
 
   @override
   void initState() {
     super.initState();
     _fetchUserDetails();
+    _fetchStoredProject();
   }
 
   Future<void> _fetchUserDetails() async {
@@ -81,6 +88,23 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
+  // Fetch the stored project name and ID
+  Future<void> _fetchStoredProject() async {
+    try {
+      final projectName = await SecureStorageUtil.readSecureData("ActiveProjectName");
+      setState(() {
+        _projectName = projectName;
+      });
+
+      // Log the fetched project name (for debugging)
+      if (_projectName != null) {
+        AppLogger.info("Fetched Active Project: $_projectName");
+      }
+    } catch (e) {
+      AppLogger.error("Error fetching project from secure storage: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -91,12 +115,17 @@ class _SettingsPageState extends State<SettingsPage> {
           onPressed: () {
             Navigator.pushReplacementNamed(context, AppRoutes.entryPoint);
           },
-          icon: Icon(Icons.chevron_left, size: 30),
+          icon: SvgPicture.asset(
+            "assets/icons/setting/LeftArrow.svg",
+          ),
           color: AppColors.primaryBlue,
         ),
-        title: const Text(
-          'Profile Details',
-          style: TextStyle(color: AppColors.primaryBlackFont),
+        title: Text(
+         'Profile Details',
+          style: FontStyles.bold700.copyWith(
+            color: AppColors.primaryBlackFont,
+            fontSize: 18,
+          ),
         ),
         backgroundColor: AppColors.primaryWhitebg,
       ),
@@ -149,26 +178,60 @@ class _SettingsPageState extends State<SettingsPage> {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 20),
-
+                    Divider(
+                      height: 2,
+                      color: Color(0xffF9F7FC)
+                    ),
                     AppSettingsTile(
                       title: "Accessibility",
                       iconPath: 'assets/icons/key.svg',
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.pushNamed(context, AppRoutes.accessibility);
+                      },
+                    ),
+                    Divider(
+                      height: 2,
+                      color: Color(0xffF9F7FC)
+                    ),
+                    AppSettingsTile(
+                      title: "Menu Accessibility",
+                      iconPath: 'assets/icons/key.svg',
+                      onTap: () {
+                        Navigator.pushNamed(context, AppRoutes.menuAccessibility);
+                      },
+                    ),
+                    Divider(
+                        height: 2,
+                        color: Color(0xffF9F7FC)
                     ),
                     AppSettingsTile(
                       title: "Assign Items",
                       iconPath:"assets/icons/clipboard-tick.svg",
-                      onTap: () {},
+                      onTap: () {
+                       // Navigator.pushNamed(context, AppRoutes.assignItems);
+                      },
+                    ),
+                    Divider(
+                        height: 2,
+                        color: Color(0xffF9F7FC)
                     ),
                     AppSettingsTile(
                       title: "Salary Slip",
                       iconPath: "assets/icons/receipt-text.svg",
-                      onTap: () {},
+                      onTap: () {
+                       // Navigator.pushNamed(context, AppRoutes.salarySlip);
+                      },
+                    ),
+                    Divider(
+                        height: 2,
+                        color: Color(0xffF9F7FC)
                     ),
                     AppSettingsTile(
                       title: "About Us",
                       iconPath: "assets/icons/warning-2.svg",
                       onTap: () {
+                        Navigator.pushNamed(context, AppRoutes.aboutUs);
+
                         // Navigator.pushNamedAndRemoveUntil(
                         //   context,
                         //   AppRoutes.login,
@@ -176,7 +239,12 @@ class _SettingsPageState extends State<SettingsPage> {
                         // );
                       },
                     ),
-                    const SizedBox(height: 30),
+                    Divider(
+                        height: 2,
+                        color: Color(0xffF9F7FC)
+                    ),
+
+                    const SizedBox(height: 60),
                     GestureDetector(
                       // onTap: () {
                       //   // Navigator.pushNamedAndRemoveUntil(
@@ -222,7 +290,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 30),
                   ],
                 ),
               ),

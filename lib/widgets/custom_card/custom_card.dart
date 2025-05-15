@@ -344,12 +344,12 @@ class _LabourCardState extends State<LabourCard> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
               //color: Colors.red.shade300, // slightly darker for better fill effect
-              color: _isActive ? Colors.green.shade300 : Colors.red.shade300, // slightly darker for better fill effect
+              color: _isActive ? Color(0xff96e9b7) : Color(0xffdb8484), // slightly darker for better fill effect
               boxShadow: [
                 BoxShadow(
                   color: Colors.black12,
                   blurRadius: 4,
-                  offset: Offset(0, 2),
+                  offset: Offset(0, 0),
                 ),
               ],
             ),
@@ -361,12 +361,12 @@ class _LabourCardState extends State<LabourCard> {
                 height: 18,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: _isActive ? Colors.green : Colors.red,
+                  color: _isActive ? Color(0xff2DD36F) : Color(0xffB70909),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black26,
                       blurRadius: 4,
-                      offset: Offset(0, 2),
+                      offset: Offset(0, 0),
                     ),
                   ],
                 ),

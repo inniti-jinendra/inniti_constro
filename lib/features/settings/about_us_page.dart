@@ -23,7 +23,9 @@ class AboutUsPage extends StatelessWidget {
 
           Navigator.pop(context, true);
           },
-          icon: Icon(Icons.chevron_left, size: 30),
+          icon: SvgPicture.asset(
+            "assets/icons/setting/LeftArrow.svg",
+          ),
           color: AppColors.primaryBlue,
         ),
         title: Text(

@@ -423,12 +423,14 @@ class _LabourAttendancePageState extends State<LabourAttendancePage> {
     AppLogger.info("🖨️ Total Present in build: $totalPresent");
 
     return Scaffold(
-      //backgroundColor: AppColors.white,
+      backgroundColor: AppColors.white,
       appBar: AppBar(
         centerTitle: true,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.chevron_left, size: 30),
+          icon: SvgPicture.asset(
+            "assets/icons/setting/LeftArrow.svg",
+          ),
           color: AppColors.primaryBlue,
         ),
         title: Column(
@@ -467,7 +469,7 @@ class _LabourAttendancePageState extends State<LabourAttendancePage> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.only(left: 20, top: 20, right: 20,),
+              padding: const EdgeInsets.only(left: 12, top: 20, right: 12,),
               child: Row(
                 children: [
                   _buildInfoCard(

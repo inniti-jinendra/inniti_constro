@@ -1927,7 +1927,9 @@ class _LaboursPageState extends ConsumerState<LaboursPage> {
         centerTitle: true,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.chevron_left, size: 30),
+          icon: SvgPicture.asset(
+            "assets/icons/setting/LeftArrow.svg",
+          ),
           color: AppColors.primaryBlue,
         ),
         title: Column(

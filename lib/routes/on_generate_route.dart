@@ -1,13 +1,11 @@
 import 'package:flutter/cupertino.dart';
 
 import '../features/MenuScreen/pages/labour_attedance_new/labour_attendance_screen.dart';
-import '../features/attedance/attedance.dart';
 import '../features/attendance_only/attendance_screen.dart';
 import '../features/authentication/OtpVerification/otp_screen.dart';
 import '../features/authentication/company_code/company_code_screen.dart';
 import '../features/authentication/email_or_phone/login_email/email_login_screen.dart';
 import '../features/authentication/email_or_phone/login_phone/phone_login_screen.dart';
-import '../features/drawer/about_us_page.dart';
 import '../features/drawer/contact_us_page.dart';
 import '../features/drawer/drawer_page.dart';
 import '../features/drawer/faq_page.dart';
@@ -37,9 +35,12 @@ import '../features/profile/profile/settings/change_password_page.dart';
 import '../features/profile/profile/settings/change_phone_number_page.dart';
 import '../features/profile/profile/settings/language_settings_page.dart';
 import '../features/profile/profile/settings/notifications_settings_page.dart';
-import '../features/profile/profile/settings/settings_page.dart';
 import '../features/purchase_requisition/pr_grid_page.dart';
 import '../features/purchase_requisition/pr_master_page.dart';
+import '../features/settings/about_us_page.dart';
+import '../features/settings/accessibility_page_screen.dart';
+import '../features/settings/menu_accessibility_page_screen.dart';
+import '../features/settings/settings_page.dart';
 import '../features/splash/splash_screen.dart';
 import 'app_routes.dart';
 import 'unknown_page.dart';
@@ -186,6 +187,12 @@ class RouteGenerator {
 
       case AppRoutes.aboutUs:
         return CupertinoPageRoute(builder: (_) => const AboutUsPage());
+
+        case AppRoutes.accessibility:
+        return CupertinoPageRoute(builder: (_) => const AccessibilityPageScreen());
+
+        case AppRoutes.menuAccessibility:
+        return CupertinoPageRoute(builder: (_) => const MenuAccessibilityPageScreen());
 
       case AppRoutes.termsAndConditions:
         return CupertinoPageRoute(

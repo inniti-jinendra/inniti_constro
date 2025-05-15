@@ -158,26 +158,30 @@ class _LabourCardState extends State<LabourCardNew> {
   Widget _buildCardUI({required bool isUnavailable}) {
 
     return Padding(
-      padding: const EdgeInsets.only(left: 20, right: 20,),
+      padding: const EdgeInsets.only(left: 12, right: 12,),
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 8),
+        margin: const EdgeInsets.symmetric(vertical: 6),
 
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
-            BoxShadow(
+            BoxShadow( // 5B21B1
+              //color: Color(0x33000000),
               color: Color(0x405B21B1), // 40 is hex for 25% opacity
+              //color: Color(0x1A5B21B1), // 40 is hex for 25% opacity
               offset: Offset(0, 0),     // Matches 0px 0px
-              blurRadius: 14,
-              spreadRadius: -6,         // Negative spread like CSS
+              blurRadius: 7,
+              spreadRadius: -4,         // Negative spread like CSS
             ),
           ],
         ),
         child: Container(
-          height: 85,
+          //height: 85,
           decoration: BoxDecoration(
-            color: isUnavailable ? Color(0xfffafafa) :Colors.white,
-           // color: isUnavailable ? Color(0xffF8F9FA) :Colors.white,
+           // color: Colors.red,
+           // color: isUnavailable ? Color(0xfffafafa) :Colors.white,
+            color: isUnavailable ? Color(0xffEFE9F7) : Colors.white,
+//color:  Color(0xff5B21B1).withOpacity(0.2),
 
             borderRadius: BorderRadius.circular(12),
 
@@ -186,7 +190,7 @@ class _LabourCardState extends State<LabourCardNew> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildTopRow(isUnavailable),
-              _buildBottomRow()],
+              _buildBottomRow(isUnavailable)],
           ),
         ),
       ),
@@ -200,7 +204,7 @@ class _LabourCardState extends State<LabourCardNew> {
       children: [
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.only(top: 15, left: 15),
+            padding: const EdgeInsets.only(top: 10, left: 15),
             // child: Text(
             //   widget.company,
             //   style: FontStyles.bold700.copyWith(
@@ -217,13 +221,15 @@ class _LabourCardState extends State<LabourCardNew> {
                   'assets/icons/attendance/Profile-Check.svg',
                   height: 16,
                   width: 16,
+                    color:isUnavailable ? Color(0xff000000).withOpacity(0.5) : null
                 ),
                 const SizedBox(width: 5),
                 Text(
                   widget.name,
                   style: FontStyles.medium500.copyWith(
                     fontSize: 12,
-                    color: AppColors.primaryBlackFontWithOpps60,
+                    color:isUnavailable ? Color(0xff000000).withOpacity(0.5) : AppColors.primaryBlackFontWithOpps60,
+                    //color: AppColors.primaryBlackFontWithOpps60,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -233,8 +239,9 @@ class _LabourCardState extends State<LabourCardNew> {
                     widget.labourCategory,
                     style: FontStyles.bold700.copyWith(
                       fontSize: 12,
-                      color: AppColors.primaryBlueFont,
-                      fontWeight: FontWeight.w500,
+                     // color: AppColors.primaryBlueFont,
+                      color:isUnavailable ? Color(0xff000000).withOpacity(0.5) :AppColors.primaryBlueFont,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -289,8 +296,8 @@ class _LabourCardState extends State<LabourCardNew> {
               ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 13,
-                    vertical: 12,
+                    horizontal: 14,
+                    vertical: 08,
                 ),
                 child: Text(
                   widget.id,
@@ -312,7 +319,7 @@ class _LabourCardState extends State<LabourCardNew> {
     );
   }
 
-  Widget _buildBottomRow() {
+  Widget _buildBottomRow(bool isUnavailable) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -321,12 +328,12 @@ class _LabourCardState extends State<LabourCardNew> {
         children: [
           // Company name (left side)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14),
+            padding: const EdgeInsets.only(left: 14, right: 14, bottom: 5),
               child: Text(
                 _truncateWithEllipsis(widget.company, 20),
                 style: FontStyles.bold700.copyWith(
                   fontSize: 16,
-                  color: AppColors.primaryBlackFont,
+                  color:isUnavailable ? Color(0xff000000).withOpacity(0.5) : AppColors.primaryBlackFont,
                 ),
               ),
 
@@ -336,9 +343,9 @@ class _LabourCardState extends State<LabourCardNew> {
 
           // Attendance status container (right side)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: _getAttendanceBackgroundColor(widget.attendance),
                 borderRadius: BorderRadius.circular(3),
@@ -347,6 +354,7 @@ class _LabourCardState extends State<LabourCardNew> {
                 _getAttendanceEmoji(widget.attendance),
                 style: GoogleFonts.nunitoSans(
                   fontSize: 10,
+                  fontWeight: FontWeight.w700,
                   color: _getAttendanceTextColor(widget.attendance),
                 ),
                 textAlign: TextAlign.center,
@@ -366,10 +374,11 @@ class _LabourCardState extends State<LabourCardNew> {
         return const Color(0xFFFFE9E9);
       case "P":
       case "Present":
-        return const Color(0xFFC8FAE8);
+        return const Color(0xffC8FAE8);
+        //return const Color(0xFFC8FAE8);
       case "U":
       case "Unavailable":
-        return const Color(0xFFFFC067);
+        return const Color(0xffF3E2C9);
       default:
         return Colors.grey.shade200;
     }
@@ -379,13 +388,13 @@ class _LabourCardState extends State<LabourCardNew> {
     switch (attendance) {
       case "A":
       case "Absent":
-        return Colors.red;
+      return Color(0xff990F0F);
       case "P":
       case "Present":
-        return Colors.green;
+        return Color(0xff07614A);
       case "U":
       case "Unavailable":
-        return Colors.orange;
+        return Color(0xffC97909);
       default:
         return Colors.grey.shade600;
     }
@@ -537,7 +546,7 @@ class _LabourCardState extends State<LabourCardNew> {
       case 'Absent':
         return 'Absent';
       case 'Unavailable':
-        return 'Unavailable';
+        return 'Un-Available';
       default:
         return '';
     }

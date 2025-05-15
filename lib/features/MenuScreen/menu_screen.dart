@@ -255,6 +255,7 @@ import 'package:inniti_constro/features/MenuScreen/pages/labour/labours_page.dar
 import 'package:inniti_constro/features/MenuScreen/pages/labour_attedance_new/labour_attendance_screen.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../routes/app_routes.dart';
 import '../../widgets/custom_dialog/custom_confirmation_dialog.dart';
 import 'pages/FuelInward/screen_page/fuel_inward_page.dart';
 import 'pages/GatePassOUT/gate_pass_out_page.dart';
@@ -363,6 +364,16 @@ class _MenuScreenState extends State<MenuScreen> {
       onWillPop: _onWillPop,
       child: Scaffold(
         appBar: AppBar(
+          leading: IconButton(
+            onPressed: () {
+              // Navigator.pop(context, true);
+              Navigator.pushReplacementNamed(context, AppRoutes.entryPoint);
+            },
+            icon: SvgPicture.asset(
+              "assets/icons/setting/LeftArrow.svg",
+            ),
+            color: AppColors.primaryBlue,
+          ),
           backgroundColor: AppColors.primaryWhitebg,
           title: Text("Choose a Menu"),
           centerTitle: true,
